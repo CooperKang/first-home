@@ -120,10 +120,7 @@ export default function Home() {
             <p className="font-book text-[22px] font-extrabold">첫 집 통장</p>
             <p className="mt-0.5 text-[13px] text-white/75">{regionInfo(s.region).label} · {POLICY_AS_OF} 규제 기준</p>
           </div>
-          <div className="absolute top-[58px] right-2 z-10 sm:-right-5">
-              <Stamp ok={!!plan}>{plan ? <>계산<br />완료</> : <>현금<br />필요</>}</Stamp>
-            </div>
-          <div className="ledger-lines rounded-b-2xl border border-t-0 border-rule px-6 pt-4 pb-6 shadow-[0_18px_40px_-24px_rgb(19_74_61/0.45)] transition group-hover:-translate-y-0.5">
+          <div className="ledger-lines relative rounded-b-2xl border border-t-0 border-rule px-6 pt-4 pb-28 shadow-[0_18px_40px_-24px_rgb(19_74_61/0.45)] transition group-hover:-translate-y-0.5">
             <div className="num grid grid-cols-[1fr_auto] gap-y-[18px] pt-[6px] text-[15px] leading-[26px]">
               <span className="text-muted">모은 돈</span>
               <span className="text-right font-semibold">{man(p.cash)}</span>
@@ -136,6 +133,9 @@ export default function Home() {
                 <span className="marker">{plan ? man(plan.price) : '없음'}</span>
               </span>
             </div>
+          </div>
+          <div className="absolute right-5 bottom-4">
+            <Stamp ok={!!plan}>{plan ? <>계산<br />완료</> : <>현금<br />필요</>}</Stamp>
           </div>
         </a>
       </section>
