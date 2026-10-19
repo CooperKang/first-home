@@ -14,6 +14,7 @@ import {
 } from './policy'
 import { debtAnnualService, firstMonthPayment, principalFromAnnual, type Debt, type Method } from './loan'
 import { purchaseCosts, type CostLine } from './costs'
+import { availableCash } from './family'
 
 export type Person = {
   age: number // 만 나이
@@ -34,6 +35,12 @@ export type Profile = {
   cash: number // 지금 쓸 수 있는 현금(예적금, 청약통장 제외 등)
   netAssets: number // 순자산(정책대출 자산 심사용)
   debts: Debt[]
+  giftMe: number // 부모님께 증여받을 금액(나)
+  giftSpouse: number // 배우자가 증여받을 금액
+  priorGift: number // 나: 최근 10년 안에 이미 받은 증여
+  familyLoan: number // 가족에게 빌릴 돈(차용증)
+  familyRatePct: number
+  familyYears: number
 }
 
 export type Scenario = {
@@ -209,17 +216,23 @@ export type Plan = {
   left: number
 }
 
-export function planFor(p: Profile, s: Scenario, price: number, loan = bestLoan(p, s, price)): Plan {
+export function planFor(p: Profile, s: Scenario, price: number, best = bestLoan(p, s, price)): Plan {
+  // 한도까지 다 빌리지 않고 모자란 만큼만 빌린다
+  const first = purchaseCosts(price, { region: s.region, over85: s.over85, firstTime: p.firstTime, loan: best.amount, moving: s.moving })
+  const short = price + first.reduce((a, c) => a + c.amount, 0) - availableCash(p)
+  const amount = Math.min(best.amount, Math.max(0, Math.ceil(short)))
+  const years = best.dsrExempt ? Math.max(s.years, 10) : s.years
+  const loan = amount === best.amount ? best : { ...best, amount, monthly: firstMonthPayment(amount, best.ratePct, years, best.dsrExempt ? 'equal' : s.method) }
   const costs = purchaseCosts(price, { region: s.region, over85: s.over85, firstTime: p.firstTime, loan: loan.amount, moving: s.moving })
   const costTotal = costs.reduce((a, c) => a + c.amount, 0)
   const cashNeeded = price - loan.amount + costTotal
-  return { price, loan, costs, costTotal, cashNeeded, left: p.cash - cashNeeded }
+  return { price, loan, costs, costTotal, cashNeeded, left: availableCash(p) - cashNeeded }
 }
 
 // 내 현금으로 감당할 수 있는 가장 비싼 집. 15억·25억에서 대출 상한이 뚝 떨어져
 // 이분 탐색을 쓸 수 없으니 1천만원 단위로 훑은 뒤 100만원 단위로 좁힌다.
 export function maxAffordable(p: Profile, s: Scenario, maxPrice = 400000) {
-  const ceiling = Math.min(maxPrice, Math.max(p.cash, 0) * 20 + 2000) // 현금의 20배를 넘는 집은 볼 필요가 없다
+  const ceiling = Math.min(maxPrice, Math.max(availableCash(p), 0) * 20 + 2000) // 현금의 20배를 넘는 집은 볼 필요가 없다
   let coarse = 0
   for (let price = 1000; price <= ceiling; price += 1000) if (planFor(p, s, price).left >= 0) coarse = price
   let best: Plan | null = null

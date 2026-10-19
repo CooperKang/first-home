@@ -7,6 +7,9 @@ import { bestLoan, buyerType, generalLoan, ltvRatio, maxAffordable, planFor, pol
 import { projectFuture, reachYear, savingNeeded } from './future'
 import { jeonseRisk, monthlyCost } from './rent'
 import { presaleSchedule } from './presale'
+import { availableCash, familyLoanRule, giftDeduction, giftTax, householdGift } from './family'
+import { firstMonthSplit } from './loan'
+import { AREAS, encodeCoord, naverMapUrl } from './naver'
 
 const couple: Profile = {
   me: { age: 31, income: 5500, job: 'employee', tenure: 4 },
@@ -20,6 +23,12 @@ const couple: Profile = {
   cash: 25000,
   netAssets: 25000,
   debts: [],
+  giftMe: 0,
+  giftSpouse: 0,
+  priorGift: 0,
+  familyLoan: 0,
+  familyRatePct: 0,
+  familyYears: 10,
 }
 
 const seoul: Scenario = {
@@ -173,6 +182,13 @@ describe('살 수 있는 집', () => {
     const plan = planFor(couple, seoul, 70000)
     expect(plan.cashNeeded).toBeCloseTo(70000 - plan.loan.amount + plan.costTotal)
   })
+  test('현금이 넉넉하면 한도까지 다 빌리지 않고 모자란 만큼만 빌린다', () => {
+    const rich = { ...couple, cash: 60000 }
+    const plan = planFor(rich, seoul, 70000)
+    expect(plan.loan.amount).toBeLessThan(bestLoan(rich, seoul, 70000).amount)
+    expect(plan.left).toBeGreaterThanOrEqual(0)
+    expect(plan.left).toBeLessThan(1)
+  })
   test('현금이 없으면 살 수 있는 집이 없다', () => {
     expect(maxAffordable({ ...couple, cash: 0 }, seoul)).toBeNull()
   })
@@ -241,5 +257,73 @@ describe('입력칸 숫자', () => {
     expect(parseInput('12,999')).toBe(12999)
     expect(parseInput('')).toBe(0)
     expect(parseInput('4.')).toBe(4)
+  })
+})
+
+describe('가족 도움', () => {
+  test('성인 5천만원, 결혼 2년 안이면 1억원을 더 공제한다', () => {
+    expect(giftDeduction({ ...couple, marriageYears: 1 }).total).toBe(15000)
+    expect(giftDeduction({ ...couple, marriageYears: 5 }).total).toBe(5000)
+    expect(giftDeduction({ ...couple, married: 'engaged' }).total).toBe(15000)
+    expect(giftDeduction({ ...couple, married: 'single', spouse: null }, 2000).total).toBe(3000)
+  })
+  test('공제를 넘는 1억원은 10%, 신고세액공제 3%', () => {
+    expect(giftTax(15000, 15000).tax).toBe(0)
+    expect(giftTax(25000, 15000).tax).toBeCloseTo(970)
+    expect(giftTax(25000, 5000).tax).toBeCloseTo((20000 * 0.2 - 1000) * 0.97)
+  })
+  test('약 2억 1,739만원까지는 무이자로 빌려도 된다', () => {
+    const r = familyLoanRule(20000, 0)
+    expect(r.minRate).toBe(0)
+    expect(r.ok).toBe(true)
+    expect(r.freeLimit).toBeCloseTo(21739.13, 1)
+  })
+  test('3억원을 빌리면 최소 이자율은 4.6% − 1천만/3억 = 약 1.27%', () => {
+    const r = familyLoanRule(30000, 0)
+    expect(r.minRate).toBeCloseTo(1.2667, 3)
+    expect(r.ok).toBe(false)
+    expect(familyLoanRule(30000, 1.3).ok).toBe(true)
+    expect(r.minMonthly).toBeCloseTo(31.67, 1)
+  })
+  test('쓸 수 있는 돈 = 모은 돈 + 증여 − 증여세 + 빌린 돈', () => {
+    const p = { ...couple, giftMe: 15000, giftSpouse: 5000, familyLoan: 10000 }
+    expect(householdGift(p).tax).toBe(0)
+    expect(availableCash(p)).toBe(25000 + 20000 + 10000)
+  })
+  test('증여를 받으면 더 비싼 집을 살 수 있다', () => {
+    const a = maxAffordable(couple, seoul)!
+    const b = maxAffordable({ ...couple, giftMe: 15000 }, seoul)!
+    expect(b.price).toBeGreaterThan(a.price)
+  })
+})
+
+describe('첫 달 원금과 이자', () => {
+  test('원리금균등 1억, 4%, 30년: 이자 33.3만원 + 원금 14.4만원', () => {
+    const s = firstMonthSplit(10000, 4, 30, 'equal')
+    expect(s.interest).toBeCloseTo(33.33, 1)
+    expect(s.principal + s.interest).toBeCloseTo(s.total)
+  })
+  test('만기일시는 원금 0', () => {
+    expect(firstMonthSplit(10000, 4, 30, 'bullet').principal).toBe(0)
+  })
+})
+
+describe('네이버 부동산 주소', () => {
+  test('좌표는 네이버 예시와 같은 62진수로 바뀐다', () => {
+    expect(encodeCoord(127.0778634)).toBe('3zlQW6')
+    expect(encodeCoord(36.7924553)).toBe('2Afzlv')
+  })
+  test('매매는 dealPrice를 원 단위로, 유형 코드는 하이픈으로 잇는다', () => {
+    const url = new URL(naverMapUrl({ trade: 'buy', types: ['apt', 'presale'], area: AREAS.seoul[0], max: 50000, min: 35000 }))
+    expect(url.searchParams.get('tradeTypes')).toBe('A1')
+    expect(url.searchParams.get('realEstateTypes')).toBe('A01-B01')
+    expect(url.searchParams.get('dealPrice')).toBe('350000000-500000000')
+    expect(url.searchParams.get('center')).toMatch(/^[0-9a-zA-Z]+-[0-9a-zA-Z]+$/)
+  })
+  test('월세는 보증금과 월세 범위를 같이 넣는다', () => {
+    const url = new URL(naverMapUrl({ trade: 'wolse', types: ['oneroom'], area: AREAS.local[0], max: 1000, monthlyMax: 60 }))
+    expect(url.searchParams.get('tradeTypes')).toBe('B2')
+    expect(url.searchParams.get('warrantyPrice')).toBe('0-10000000')
+    expect(url.searchParams.get('rentPrice')).toBe('0-600000')
   })
 })

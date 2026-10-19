@@ -14,6 +14,12 @@ export const DEFAULT_PROFILE: Profile = {
   cash: 8000,
   netAssets: 8000,
   debts: [],
+  giftMe: 0,
+  giftSpouse: 0,
+  priorGift: 0,
+  familyLoan: 0,
+  familyRatePct: 0,
+  familyYears: 10,
 }
 
 export const DEFAULT_SCENARIO: Scenario = {

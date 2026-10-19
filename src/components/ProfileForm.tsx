@@ -1,6 +1,7 @@
 import type { Person, Profile } from '../calc/afford'
 import { DEBT_KINDS, type Debt, type DebtKind } from '../calc/loan'
 import { setProfile, useStore } from '../store'
+import { FamilyFields } from './Family'
 import { Grid2, MoneyField, NumberField, Panel, Segmented, Toggle } from './ui'
 
 const JOBS: { id: Person['job']; label: string }[] = [
@@ -132,11 +133,13 @@ export default function ProfileForm({ compact = false }: { compact?: boolean }) 
             label="집 사는 데 쓸 수 있는 현금"
             value={p.cash}
             onChange={(cash) => set({ cash })}
-            hint="예적금, 전세보증금 돌려받을 돈, 부모님 지원(증여세 확인)"
+            hint="예적금, 돌려받을 전세보증금 등 내 돈. 부모님 도움은 아래 '가족 도움'에 따로 넣어요"
           />
           <MoneyField label="순자산" value={p.netAssets} onChange={(netAssets) => set({ netAssets })} hint="부부 합산 재산 − 부채. 정책 대출 심사에 써요" />
         </Grid2>
       </Panel>
+
+      <FamilyFields />
 
       <Panel title="지금 갚고 있는 대출">
         <DebtList debts={p.debts} onChange={(debts) => set({ debts })} />

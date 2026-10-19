@@ -196,40 +196,53 @@ export function Note({ tone = 'plain', title, children }: { tone?: 'seal' | 'ban
   )
 }
 
-// 통장 거래내역처럼 들어오고 나가는 돈과 잔액을 한 줄씩 보여 준다
+// 통장 거래내역처럼 들어오고 나가는 돈과 잔액을 한 줄씩 보여 준다.
+// 줄마다 메모 길이가 달라 높이는 내용에 맞추고, 휴대폰에서는 잔액을 금액 아래에 둔다.
 export type LedgerRow = { label: string; note?: string; amount: number; kind: 'in' | 'out' }
+
+function LedgerLine({ label, note, amount, balance }: { label: string; note?: string; amount: ReactNode; balance: number }) {
+  return (
+    <li className="flex items-start gap-3 px-4 py-2.5">
+      <div className="min-w-0 flex-1">
+        <p className="text-[14px] leading-snug font-semibold">{label}</p>
+        {note && <p className="mt-0.5 text-[12px] leading-snug text-muted">{note}</p>}
+      </div>
+      <div className="num w-[6.75rem] shrink-0 text-right text-[14px] leading-snug whitespace-nowrap sm:w-28">
+        {amount}
+        <p className={`text-[12px] text-muted sm:hidden ${balance < 0 ? 'text-seal' : ''}`}>잔액 {man(balance, '')}</p>
+      </div>
+      <p className={`num hidden w-28 shrink-0 text-right text-[14px] leading-snug font-semibold whitespace-nowrap sm:block ${balance < 0 ? 'text-seal' : ''}`}>{man(balance, '')}</p>
+    </li>
+  )
+}
 
 export function Ledger({ rows, start, startLabel = '내 현금' }: { rows: LedgerRow[]; start: number; startLabel?: string }) {
   const balances = rows.reduce<number[]>((acc, r) => [...acc, (acc.at(-1) ?? start) + (r.kind === 'in' ? r.amount : -r.amount)], [])
   return (
-    <div className="overflow-hidden rounded-xl border border-rule">
-      <div className="grid grid-cols-[1fr_auto_auto] gap-x-3 bg-bank px-4 py-2 text-[12px] font-semibold text-white/85 sm:grid-cols-[1fr_7.5rem_7.5rem]">
-        <span>적요</span>
-        <span className="text-right">금액</span>
-        <span className="text-right">잔액</span>
+    <div className="overflow-hidden rounded-xl border border-rule bg-sheet">
+      <div className="flex gap-3 bg-bank px-4 py-2 text-[12px] font-semibold text-white/85">
+        <span className="flex-1">적요</span>
+        <span className="w-[6.75rem] text-right sm:w-28">
+          금액<span className="sm:hidden"> / 잔액</span>
+        </span>
+        <span className="hidden w-28 text-right sm:block">잔액</span>
       </div>
-      <ol className="ledger-lines pb-1">
-        <li className="grid min-h-11 grid-cols-[1fr_auto_auto] items-center gap-x-3 px-4 sm:grid-cols-[1fr_7.5rem_7.5rem]">
-          <span className="text-[14px] font-semibold">{startLabel}</span>
-          <span />
-          <span className="num text-right text-[14px] font-semibold">{man(start, '')}</span>
-        </li>
-        {rows.map((r, i) => {
-          const balance = balances[i]
-          return (
-            <li key={i} className="grid min-h-11 grid-cols-[1fr_auto_auto] items-center gap-x-3 px-4 py-1.5 sm:grid-cols-[1fr_7.5rem_7.5rem]">
-              <span className="min-w-0">
-                <span className="block text-[14px] font-semibold">{r.label}</span>
-                {r.note && <span className="block text-[12px] leading-snug text-muted">{r.note}</span>}
-              </span>
-              <span className={`num text-right text-[14px] ${r.kind === 'in' ? 'text-bank' : 'text-ink'}`}>
+      <ol className="divide-y divide-rule">
+        <LedgerLine label={startLabel} amount={<span className="text-muted">–</span>} balance={start} />
+        {rows.map((r, i) => (
+          <LedgerLine
+            key={i}
+            label={r.label}
+            note={r.note}
+            balance={balances[i]}
+            amount={
+              <span className={r.kind === 'in' ? 'text-bank' : ''}>
                 {r.kind === 'in' ? '+' : '−'}
                 {man(r.amount, '')}
               </span>
-              <span className={`num text-right text-[14px] font-semibold ${balance < 0 ? 'text-seal' : ''}`}>{man(balance, '')}</span>
-            </li>
-          )
-        })}
+            }
+          />
+        ))}
       </ol>
     </div>
   )

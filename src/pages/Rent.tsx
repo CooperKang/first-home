@@ -170,7 +170,7 @@ export default function Rent() {
           </Panel>
 
           <Panel title="이 가격대 전월세 보기">
-            <Listings region={s.region} price={r.deposit} rent />
+            <Listings region={s.region} price={r.deposit} kind={r.kind} monthlyRent={r.kind === 'wolse' ? r.monthlyRent : 0} />
           </Panel>
         </div>
       </div>

@@ -1,6 +1,7 @@
 // 입력한 상황을 보고 처음 집을 사는 사람이 놓치기 쉬운 것을 골라 준다
 import { generalLoan, householdIncome, type Plan, type Profile, type Scenario } from './afford'
-import { debtAnnualService, firstMonthPayment, unitAnnualService } from './loan'
+import { debtAnnualService, firstMonthPayment, firstMonthSplit, unitAnnualService } from './loan'
+import { familyLoanRule, householdGift } from './family'
 import { STRESS, futureIncomeRate, regionInfo } from './policy'
 import { man, monthly, pct } from '../format'
 
@@ -146,6 +147,28 @@ export function buyInsights(p: Profile, s: Scenario, plan: Plan | null): Insight
       body: `월 ${monthly(now)} → ${monthly(up)}. 세전 소득의 ${pct(share)}가 원리금으로 나가요. 생활비와 저축을 빼고도 감당할 수 있는지 따져 보세요.`,
     })
   }
+
+  // 가족 도움
+  if (p.familyLoan) {
+    const rule = familyLoanRule(p.familyLoan, p.familyRatePct)
+    const fam = firstMonthSplit(p.familyLoan, p.familyRatePct, p.familyYears, 'equal')
+    if (!rule.ok)
+      out.push({
+        tone: 'seal',
+        title: `가족에게 빌린 ${man(p.familyLoan)}은 이자율을 ${rule.minRate.toFixed(2)}% 이상으로 정해야 해요`,
+        body: `지금 이자율(${p.familyRatePct}%)이면 덜 내는 이자가 1년에 ${man(rule.benefit)}이라 증여로 볼 수 있어요. 매달 ${monthly(rule.minMonthly)} 이상 이자가 통장에서 나가야 해요.`,
+      })
+    const bank = plan && !plan.loan.dsrExempt ? firstMonthPayment(plan.loan.amount, s.ratePct, s.years, s.method) : (plan?.loan.monthly ?? 0)
+    const share = ((bank + fam.total) * 12) / householdIncome(p)
+    out.push({
+      tone: share > 0.5 ? 'seal' : 'plain',
+      title: `가족 차용까지 합치면 매달 ${monthly(bank + fam.total)}, 소득의 ${pct(share)}가 나가요`,
+      body: '가족에게 빌린 돈은 은행 DSR에는 안 들어가서 한도는 그대로 나오지만, 실제로 갚는 돈은 늘어요. 갚는 기간을 늘리거나 빌리는 금액을 줄여 생활비가 남는지 확인하세요.',
+    })
+  }
+  const gift = householdGift(p)
+  if (gift.tax > 0)
+    out.push({ tone: 'seal', title: `증여세 약 ${man(gift.tax)}이 나와요`, body: '공제 한도를 넘었어요. 넘는 금액은 차용증을 쓰고 빌리는 방식이 세금 면에서 나을 수 있어요.' })
 
   out.push({
     tone: 'plain',

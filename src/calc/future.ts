@@ -1,5 +1,5 @@
 // 지금부터 매달 모으면 몇 년 뒤 얼마짜리 집을 볼 수 있는지. 금액은 만원.
-import { maxAffordable, type Profile, type Scenario } from './afford'
+import { maxAffordable, type Plan, type Profile, type Scenario } from './afford'
 
 export type FutureInput = {
   monthlySaving: number
@@ -16,6 +16,8 @@ export type FutureYear = {
   income: number
   canBuy: number // 그 해에 살 수 있는 최대 집값
   target: number // 그 해의 목표 집값(상승률 반영)
+  plan: Plan | null // 그 해 최대 집값을 살 때의 대출·비용
+  at: Profile // 그 해의 나이·소득·모은 돈
 }
 
 function grow(person: Profile['me'], g: number, y: number): Profile['me'] {
@@ -41,6 +43,8 @@ export function projectFuture(p: Profile, s: Scenario, f: FutureInput, lastOnly 
       income: future.me.income + (future.spouse?.income ?? 0),
       canBuy: plan?.price ?? 0,
       target: f.target * (1 + f.priceGrowthPct / 100) ** y,
+      plan,
+      at: future,
     })
   }
   return rows

@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react'
-import { householdIncome, maxAffordable, planFor, type Plan } from '../calc/afford'
+import { maxAffordable, planFor, type Plan } from '../calc/afford'
 import { buyInsights } from '../calc/insights'
 import { regionInfo } from '../calc/policy'
 import LoanTerms from '../components/LoanTerms'
 import Listings from '../components/Listings'
 import { IncomeTable, LimitBars, OptionsTable, PolicyCheck } from '../components/LoanBreakdown'
 import ProfileForm from '../components/ProfileForm'
+import Repayment from '../components/Repayment'
+import { FamilyGuide } from '../components/Family'
+import { familyRows } from '../calc/familyRows'
 import { Ledger, MoneyField, Note, PageHead, Panel, Segmented, Stamp, type LedgerRow } from '../components/ui'
-import { man, monthly, pct } from '../format'
+import { man } from '../format'
 import { useLocal, useStore } from '../store'
 
 function ledgerRows(plan: Plan): LedgerRow[] {
@@ -26,7 +29,6 @@ export default function Buy() {
   const plan = useMemo(() => (mode.mode === 'max' ? maxAffordable(p, s) : planFor(p, s, mode.price)), [p, s, mode])
   const insights = useMemo(() => buyInsights(p, s, plan), [p, s, plan])
   const ok = !!plan && plan.left >= 0
-  const yearly = plan ? plan.loan.monthly * 12 : 0
 
   return (
     <>
@@ -72,31 +74,18 @@ export default function Buy() {
                       <span className="marker">{man(plan.price)}</span>
                     </p>
                     <p className="num mt-1 text-[14px] text-muted">
-                      대출 {man(plan.loan.amount)} + 내 돈 {man(plan.price - plan.loan.amount)} · 부대비용 {man(plan.costTotal)}
+                      대출 {man(plan.loan.amount)}, 내 돈 {man(plan.price - plan.loan.amount)}, 세금·비용 {man(plan.costTotal)}
                     </p>
                   </div>
                   <Stamp ok={ok}>{ok ? <>살 수<br />있어요</> : <>현금<br />부족</>}</Stamp>
                 </div>
-                <Ledger rows={ledgerRows(plan)} start={p.cash} />
+                <Ledger rows={[...familyRows(p), ...ledgerRows(plan)]} start={p.cash} startLabel="모은 돈" />
                 {!ok && (
                   <Note tone="seal" title={`${man(-plan.left)}이 모자라요`}>
                     현금을 더 모으거나, 집값을 낮추거나, 아래 대출 조건(주기형, 장래소득, 배우자 합산)을 바꿔 보세요. 미래 계산기에서 몇 년 뒤면 되는지 볼 수 있어요.
                   </Note>
                 )}
-                <div className="grid grid-cols-2 gap-4 rounded-xl bg-paper p-4 sm:grid-cols-3">
-                  <div>
-                    <p className="text-[13px] text-muted">첫 달 상환액</p>
-                    <p className="num text-[18px] font-bold">{monthly(plan.loan.monthly)}</p>
-                  </div>
-                  <div>
-                    <p className="text-[13px] text-muted">소득 대비</p>
-                    <p className="num text-[18px] font-bold">{pct(yearly / Math.max(householdIncome(p), 1))}</p>
-                  </div>
-                  <div>
-                    <p className="text-[13px] text-muted">남는 현금</p>
-                    <p className={`num text-[18px] font-bold ${plan.left < 0 ? 'text-seal' : ''}`}>{man(plan.left)}</p>
-                  </div>
-                </div>
+                <Repayment p={p} s={s} plan={plan} />
               </>
             ) : (
               <Note tone="seal" title="지금 현금으로는 부대비용을 내기도 어려워요">
@@ -130,6 +119,10 @@ export default function Buy() {
                 </Note>
               ))}
             </div>
+          </Panel>
+
+          <Panel title="부모님 도움을 받는다면(증여·차용)">
+            <FamilyGuide />
           </Panel>
 
           <Panel title="정책 대출 자격">

@@ -19,6 +19,13 @@ export function firstMonthPayment(principal: number, ratePct: number, years: num
   return (principal * r) / (1 - (1 + r) ** -n)
 }
 
+// 첫 달 상환액을 원금과 이자로 나눈다
+export function firstMonthSplit(principal: number, ratePct: number, years: number, method: Method) {
+  const total = firstMonthPayment(principal, ratePct, years, method)
+  const interest = (principal * ratePct) / 100 / 12
+  return { total, interest, principal: Math.max(0, total - interest) }
+}
+
 // 만기까지 내는 이자 합계
 export function totalInterest(principal: number, ratePct: number, years: number, method: Method) {
   const r = ratePct / 100 / 12

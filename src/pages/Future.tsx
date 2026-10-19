@@ -1,9 +1,13 @@
 import { useMemo, useState } from 'react'
 import { projectFuture, reachYear, savingNeeded, type FutureInput, type FutureYear } from '../calc/future'
+import { planFor } from '../calc/afford'
+import { FamilyGuide } from '../components/Family'
+import { familyRows } from '../calc/familyRows'
+import Repayment from '../components/Repayment'
 import LoanTerms from '../components/LoanTerms'
 import Listings from '../components/Listings'
 import ProfileForm from '../components/ProfileForm'
-import { MoneyField, Note, NumberField, PageHead, Panel, Segmented } from '../components/ui'
+import { Ledger, MoneyField, Note, NumberField, PageHead, Panel, Segmented } from '../components/ui'
 import { man, manShort } from '../format'
 import { setProfile, useLocal, useStore } from '../store'
 
@@ -128,6 +132,8 @@ export default function Future() {
 
   const rows = useMemo(() => projectFuture(p, s, f), [p, s, f])
   const reach = reachYear(rows)
+  // 목표에 닿는 해에 목표 집을 실제로 살 때의 대출·비용
+  const goal = useMemo(() => (reach === null ? null : planFor(rows[reach].at, s, rows[reach].target)), [rows, reach, s])
   const need = useMemo(() => savingNeeded(p, s, f, goalYears.years), [p, s, f, goalYears.years])
 
   return (
@@ -179,10 +185,26 @@ export default function Future() {
                 </>
               )}
             </p>
-            {reach !== null && reach > 0 && (
-              <p className="num text-[14px] text-muted">
-                그때 집값은 {man(rows[reach].target)}, 모은 돈은 {man(rows[reach].cash)}이 돼요.
-              </p>
+            {goal && reach !== null && (
+              <div className="space-y-4 border-t border-rule pt-4">
+                <p className="text-[15px] leading-relaxed">
+                  {reach > 0 ? `${reach}년 뒤` : '지금'} 집값은 <b className="num">{man(goal.price)}</b>, 모은 돈은 <b className="num">{man(rows[reach].cash)}</b>
+                  {familyRows(p).length > 0 && <>에 가족 도움을 더하고</>}
+                  {goal.loan.amount > 0 && (
+                    <>
+                      , <b className="num">{goal.loan.name} {man(goal.loan.amount)}</b>을 받아
+                    </>
+                  )}{' '}
+                  이렇게 살 수 있어요.
+                </p>
+                <Repayment p={rows[reach].at} s={s} plan={goal} />
+                <details className="group">
+                  <summary className="cursor-pointer text-[14px] font-semibold text-bank">그때 통장 내역 보기</summary>
+                  <div className="mt-3">
+                    <Ledger rows={[...familyRows(p), { label: goal.loan.name, note: `연 ${goal.loan.ratePct.toFixed(2)}%`, amount: goal.loan.amount, kind: 'in' }, { label: '집값', amount: goal.price, kind: 'out' }, ...goal.costs.map((c) => ({ label: c.label, note: c.note, amount: c.amount, kind: 'out' as const }))]} start={rows[reach].cash} startLabel="그때까지 모은 돈" />
+                  </div>
+                </details>
+              </div>
             )}
             <div className="flex items-center justify-between gap-3 border-t border-rule pt-4">
               <Segmented
@@ -248,9 +270,16 @@ export default function Future() {
                 </li>
               ))}
             </ul>
+            <Note tone="plain" title="부모님 도움도 계산에 넣을 수 있어요">
+              '내 상황'의 가족 도움에 증여받을 돈이나 빌릴 돈을 넣으면, 집 살 때 쓸 돈에 더해 목표에 닿는 해가 당겨지는지 보여 드려요.
+            </Note>
             <Note tone="plain" title="지금은 전세·월세로 살고 있다면">
               보증금도 모은 돈에 들어가요. 전세 만기에 돌려받을 보증금을 '지금 모아 둔 돈'에 더하고, 전세대출이 있다면 빼 주세요. 청약통장은 따로 꾸준히 넣어 두는 게 유리해요(월 25만원까지 인정).
             </Note>
+          </Panel>
+
+          <Panel title="부모님 도움을 받는다면(증여·차용)">
+            <FamilyGuide />
           </Panel>
 
           <Panel title="지금 볼 수 있는 매물">

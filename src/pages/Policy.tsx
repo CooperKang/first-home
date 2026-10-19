@@ -116,7 +116,7 @@ export default function Policy() {
 
           <Panel title="지역별 LTV">
             <div className="-mx-1 overflow-x-auto px-1">
-              <table className="num w-full min-w-[400px] text-[14px]">
+              <table className="num w-full text-[13px] sm:text-[14px]">
                 <thead>
                   <tr className="border-b border-rule text-[12px] text-muted">
                     <th className="py-1.5 text-left font-semibold">구분</th>

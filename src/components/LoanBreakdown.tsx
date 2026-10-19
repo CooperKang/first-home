@@ -72,33 +72,24 @@ export function OptionsTable({ p, s, price, chosen }: { p: Profile; s: Scenario;
   const all = [general, ...policy]
   const years = (dsrExempt: boolean) => (dsrExempt ? Math.max(s.years, 10) : s.years)
   return (
-    <div className="-mx-1 overflow-x-auto px-1">
-      <table className="w-full min-w-[460px] text-[14px]">
-        <thead>
-          <tr className="border-b border-rule text-left text-[12px] text-muted">
-            <th className="py-1.5 font-semibold">대출</th>
-            <th className="py-1.5 text-right font-semibold">한도</th>
-            <th className="py-1.5 text-right font-semibold">금리</th>
-            <th className="py-1.5 text-right font-semibold">첫 달 상환</th>
-          </tr>
-        </thead>
-        <tbody className="num">
-          {all.map((o) => (
-            <tr key={o.id} className={`border-b border-rule/60 ${o.id === chosen ? 'bg-mark/25' : ''}`}>
-              <td className="py-2">
-                <span className="font-semibold">{o.name}</span>
-                {o.dsrExempt && <span className="ml-1 text-[12px] text-bank">DSR 미적용</span>}
-              </td>
-              <td className="py-2 text-right">{man(o.amount)}</td>
-              <td className="py-2 text-right">{o.ratePct.toFixed(2)}%</td>
-              <td className="py-2 text-right">
-                {monthly(o.monthly)}
-                <span className="block text-[11px] text-muted">{years(o.dsrExempt)}년</span>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div>
+      <ul className="divide-y divide-rule/70 border-y border-rule">
+        {all.map((o) => (
+          <li key={o.id} className={`grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 px-2 py-3 sm:grid-cols-[1fr_7rem_4.5rem_7rem] sm:items-center ${o.id === chosen ? 'bg-mark/25' : ''}`}>
+            <p className="min-w-0 text-[14px] font-semibold">
+              {o.name}
+              {o.id === chosen && <span className="ml-1.5 rounded bg-ink px-1.5 py-0.5 text-[11px] text-white">선택</span>}
+              {o.dsrExempt && <span className="ml-1.5 text-[12px] font-normal text-bank">DSR 미적용</span>}
+            </p>
+            <p className="num text-right text-[14px] font-bold sm:font-normal">{man(o.amount)}</p>
+            <p className="num text-[13px] text-muted sm:text-right sm:text-[14px] sm:text-ink">연 {o.ratePct.toFixed(2)}%</p>
+            <p className="num text-right text-[13px] text-muted sm:text-[14px] sm:text-ink">
+              첫 달 {monthly(o.monthly)}
+              <span className="block text-[11px] text-muted">{years(o.dsrExempt)}년</span>
+            </p>
+          </li>
+        ))}
+      </ul>
       <p className="mt-2 text-[12px] leading-snug text-muted">정책 대출 금리는 소득·만기·우대 조건에 따라 범위 안에서 정해져요. 표에는 범위의 가운데 값을 썼어요.</p>
     </div>
   )
