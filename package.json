@@ -1,0 +1,37 @@
+{
+  "name": "first-home",
+  "private": true,
+  "version": "1.0.0",
+  "description": "사회초년생·생애최초·신혼부부를 위한 첫 집 계산기: 대출 한도, DSR, 부대비용, 미래 저축, 전월세, 분양 자금",
+  "author": "JaeHa Kang (https://github.com/CooperKang)",
+  "license": "MIT",
+  "homepage": "https://cooperkang.github.io/first-home/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/CooperKang/first-home.git"
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "oxlint",
+    "test": "vitest run",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "oxlint": "^1.81.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.5"
+  }
+}
