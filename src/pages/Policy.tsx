@@ -52,6 +52,13 @@ const TIMELINE = [
   },
 ]
 
+// 타임라인은 항상 최신순으로 보여 준다. '2026.9'처럼 날짜가 없으면 그달 1일로 본다.
+function dateKey(d: string) {
+  const [y, m, day = 1] = d.split('.').map(Number)
+  return y * 10000 + m * 100 + day
+}
+const LATEST_FIRST = [...TIMELINE].sort((a, b) => dateKey(b.date) - dateKey(a.date))
+
 const WORDS = [
   ['LTV(담보인정비율)', '집값의 몇 %까지 빌려주는지. 10억 집에 LTV 40%면 4억원까지.'],
   ['DSR(총부채원리금상환비율)', '1년에 갚는 모든 대출의 원금 + 이자 ÷ 연소득. 은행은 40%까지.'],
@@ -158,12 +165,15 @@ export default function Policy() {
         </div>
 
         <div className="space-y-4">
-          <Panel title="최근 대출 규제가 바뀐 순서">
+          <Panel title="대출 규제가 바뀐 순서(최신순)">
             <ol className="relative space-y-5 border-l-2 border-bank/40 pl-5">
-              {TIMELINE.map((t) => (
+              {LATEST_FIRST.map((t, i) => (
                 <li key={t.date} className="relative">
-                  <span className="absolute top-1.5 -left-[27px] size-3 rounded-full border-2 border-sheet bg-bank" aria-hidden />
-                  <p className="num text-[13px] font-bold text-bank">{t.date}</p>
+                  <span className={`absolute top-1.5 -left-[27px] size-3 rounded-full border-2 border-sheet bg-bank ${i === 0 ? 'pulse' : ''}`} aria-hidden />
+                  <p className="num text-[13px] font-bold text-bank">
+                    {t.date}
+                    {i === 0 && <span className="ml-2 rounded bg-bank px-1.5 py-0.5 text-[11px] text-white">가장 최근</span>}
+                  </p>
                   <p className="text-[16px] font-bold">{t.name}</p>
                   <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[14px] leading-relaxed text-ink/80">
                     {t.points.map((x) => (

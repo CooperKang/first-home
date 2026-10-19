@@ -77,6 +77,26 @@ body {
   animation: stamp 420ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
 }
 
+/* 타임라인의 가장 최근 항목: 점 둘레로 퍼지는 고리 */
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.55;
+  }
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+.pulse::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  background: var(--color-bank);
+  animation: pulse-ring 1.8s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+
 input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
@@ -92,5 +112,9 @@ input[type='number'] {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+  /* 움직임을 줄인 사용자에게는 고리를 감추고 '가장 최근' 표시만 남긴다 */
+  .pulse::after {
+    display: none;
   }
 }
