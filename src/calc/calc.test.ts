@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { formatInput, parseInput } from '../format'
 import { futureIncomeRate, mortgageCap, stressRate } from './policy'
 import { acquisitionTax, bondCost, brokerageFee, rentDealAmount } from './costs'
 import { debtAnnualService, firstMonthPayment, principalFromAnnual, totalInterest, unitAnnualService } from './loan'
@@ -220,5 +221,25 @@ describe('분양 자금', () => {
     expect(x.deposit + x.middle + x.balance).toBe(60000)
     expect(x.deferred).toBeGreaterThan(0)
     expect(x.atMoveIn).toBeCloseTo(x.balance + x.middleLoan + x.deferred)
+  })
+})
+
+describe('입력칸 숫자', () => {
+  test('세 자리마다 쉼표, 앞자리 0은 지운다', () => {
+    expect(formatInput('012999', false)).toBe('12,999')
+    expect(formatInput('1234567', false)).toBe('1,234,567')
+    expect(formatInput('0', false)).toBe('0')
+    expect(formatInput('', false)).toBe('')
+  })
+  test('금리처럼 소수가 필요한 칸은 소수점을 하나만 남긴다', () => {
+    expect(formatInput('4.1.5', true)).toBe('4.15')
+    expect(formatInput('.5', true)).toBe('0.5')
+    expect(formatInput('4.', true)).toBe('4.')
+    expect(formatInput('4.5', false)).toBe('45')
+  })
+  test('쉼표를 빼고 숫자로 읽는다', () => {
+    expect(parseInput('12,999')).toBe(12999)
+    expect(parseInput('')).toBe(0)
+    expect(parseInput('4.')).toBe(4)
   })
 })

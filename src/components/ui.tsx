@@ -1,5 +1,5 @@
-import { useId, type ReactNode } from 'react'
-import { man } from '../format'
+import { useId, useState, type ReactNode } from 'react'
+import { formatInput, man, parseInput } from '../format'
 
 export function PageHead({ title, lead }: { title: string; lead: ReactNode }) {
   return (
@@ -43,13 +43,45 @@ type NumProps = {
   suffix: string
   hint?: ReactNode
   step?: number
-  min?: number
   max?: number
   readout?: (v: number) => string
 }
 
-export function NumberField({ label, value, onChange, suffix, hint, step = 1, min = 0, max, readout }: NumProps) {
+// 입력 중인 글자를 그대로 들고 있다가 숫자로 바꿔 올려 보낸다.
+// type="number"는 쉼표를 못 쓰고 '012999'처럼 앞자리 0이 남아서 글자 입력칸을 쓴다.
+function toText(v: number, decimal: boolean) {
+  return v ? formatInput(String(v), decimal) : ''
+}
+
+export function NumberField({ label, value, onChange, suffix, hint, step = 1, max, readout }: NumProps) {
   const id = useId()
+  const decimal = step < 1
+  const [text, setText] = useState(() => toText(value, decimal))
+  const [last, setLast] = useState(value)
+  // 다른 곳(초기화, 예시 상황 고르기)에서 값이 바뀌면 입력칸도 맞춘다
+  if (value !== last) {
+    setLast(value)
+    if (parseInput(text) !== value) setText(toText(value, decimal))
+  }
+
+  const change = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const el = e.target
+    const raw = el.value
+    const caret = el.selectionStart ?? raw.length
+    const next = formatInput(raw, decimal)
+    // 쉼표가 늘거나 줄어도 커서가 같은 숫자 뒤에 머물게 한다
+    const keep = formatInput(raw.slice(0, caret), decimal).replace(/,/g, '').length
+    setText(next)
+    const v = parseInput(next)
+    setLast(v)
+    onChange(v)
+    requestAnimationFrame(() => {
+      let pos = 0
+      for (let seen = 0; pos < next.length && seen < keep; pos++) if (next[pos] !== ',') seen++
+      el.setSelectionRange(pos, pos)
+    })
+  }
+
   return (
     <Field
       label={label}
@@ -67,16 +99,16 @@ export function NumberField({ label, value, onChange, suffix, hint, step = 1, mi
       <div className="flex h-12 items-center rounded-xl border border-rule bg-white px-3.5 focus-within:border-bank focus-within:ring-2 focus-within:ring-bank/20">
         <input
           id={id}
-          type="number"
-          inputMode="decimal"
-          className="num w-full min-w-0 bg-transparent text-[17px] font-semibold outline-none"
-          value={Number.isFinite(value) ? value : ''}
-          step={step}
-          min={min}
-          max={max}
-          onChange={(e) => {
-            const v = e.target.value === '' ? 0 : Number(e.target.value)
-            onChange(Number.isFinite(v) ? v : 0)
+          type="text"
+          inputMode={decimal ? 'decimal' : 'numeric'}
+          autoComplete="off"
+          placeholder="0"
+          className="num w-full min-w-0 bg-transparent text-[17px] font-semibold outline-none placeholder:text-muted/50"
+          value={text}
+          onChange={change}
+          onBlur={() => {
+            if (max !== undefined && value > max) onChange(max)
+            else setText(toText(value, decimal))
           }}
         />
         <span className="ml-2 shrink-0 text-[14px] text-muted">{suffix}</span>

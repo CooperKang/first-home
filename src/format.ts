@@ -30,3 +30,19 @@ export function monthly(n: number) {
 export function pct(r: number, digits = 1) {
   return `${(r * 100).toFixed(digits).replace(/\.0+$/, '')}%`
 }
+
+// 입력칸 글자를 '1,234,500'처럼 다듬는다. 숫자와 소수점만 남기고, 앞자리 0은 지운다.
+export function formatInput(raw: string, decimal: boolean) {
+  const clean = raw.replace(decimal ? /[^\d.]/g : /\D/g, '')
+  const dot = clean.indexOf('.')
+  const intRaw = dot === -1 ? clean : clean.slice(0, dot)
+  const frac = dot === -1 ? null : clean.slice(dot + 1).replace(/\./g, '')
+  let int = intRaw.replace(/^0+(?=\d)/, '')
+  if (int === '' && frac !== null) int = '0'
+  return int.replace(/\B(?=(\d{3})+(?!\d))/g, ',') + (frac === null ? '' : `.${frac}`)
+}
+
+export function parseInput(text: string) {
+  const v = Number(text.replace(/,/g, ''))
+  return Number.isFinite(v) ? v : 0
+}
