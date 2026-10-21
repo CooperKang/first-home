@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Profile, Scenario } from './calc/afford'
+import { NO_ASSETS } from './calc/assets'
 
 // 한 번 입력한 내 상황은 모든 계산기가 같이 쓴다. 이 기기 브라우저에만 저장된다.
 export const DEFAULT_PROFILE: Profile = {
@@ -11,8 +12,8 @@ export const DEFAULT_PROFILE: Profile = {
   kids: 0,
   homeless: true,
   firstTime: true,
-  cash: 8000,
-  netAssets: 8000,
+  assets: { ...NO_ASSETS, savings: 6000, deposit: 2000 },
+  useSubscription: false,
   debts: [],
   giftMe: 0,
   giftSpouse: 0,
@@ -39,12 +40,19 @@ const KEY = 'first-home:v1'
 
 type Saved = { profile: Profile; scenario: Scenario }
 
+// 예전에는 '현금'과 '순자산' 두 칸이었다. 현금은 예적금으로, 나머지는 그 밖의 재산으로 옮긴다.
+function migrate(p: Profile & { cash?: number; netAssets?: number }): Profile {
+  const { cash, netAssets, ...rest } = p
+  if (cash === undefined) return rest
+  return { ...rest, assets: { ...NO_ASSETS, savings: cash, other: Math.max(0, (netAssets ?? cash) - cash) } }
+}
+
 function load(): Saved {
   try {
     const raw = localStorage.getItem(KEY)
     if (raw) {
       const s = JSON.parse(raw) as Partial<Saved>
-      return { profile: { ...DEFAULT_PROFILE, ...s.profile }, scenario: { ...DEFAULT_SCENARIO, ...s.scenario } }
+      return { profile: migrate({ ...DEFAULT_PROFILE, ...s.profile }), scenario: { ...DEFAULT_SCENARIO, ...s.scenario } }
     }
   } catch {
     // 저장소를 못 쓰는 환경(사생활 보호 모드 등)이면 기본값으로 시작한다
@@ -92,13 +100,14 @@ export function useStore() {
 }
 
 // 계산기마다 따로 쓰는 입력값(목표 집값 등)도 기억해 둔다
-export function useLocal<T>(key: string, initial: T) {
+// override는 저장된 값보다 앞선다(주소로 화면을 고른 경우)
+export function useLocal<T>(key: string, initial: T, override?: Partial<T>) {
   const [v, setV] = useState<T>(() => {
     try {
       const raw = localStorage.getItem(`first-home:${key}`)
-      return raw ? { ...initial, ...JSON.parse(raw) } : initial
+      return { ...initial, ...(raw ? JSON.parse(raw) : {}), ...override }
     } catch {
-      return initial
+      return { ...initial, ...override }
     }
   })
   useEffect(() => {

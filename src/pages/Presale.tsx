@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { ownCash } from '../calc/assets'
 import { bestLoan } from '../calc/afford'
 import { purchaseCosts } from '../calc/costs'
 import { INTEREST_MODES, presaleSchedule, type PresaleInput } from '../calc/presale'
@@ -31,7 +32,7 @@ export default function Presale() {
   const cashMiddle = sch.steps.slice(1).reduce((a, st) => a + st.cash, 0)
   const cashMoveIn = sch.atMoveIn - finalLoan + costTotal
   const totalCash = cashAtContract + cashMiddle + cashMoveIn
-  const ok = p.cash >= totalCash
+  const ok = ownCash(p) >= totalCash
 
   return (
     <>
@@ -96,7 +97,7 @@ export default function Presale() {
 
           <Panel title="입주하는 날의 통장">
             <Ledger
-              start={p.cash - cashAtContract - cashMiddle}
+              start={ownCash(p) - cashAtContract - cashMiddle}
               startLabel="계약금·중도금 내고 남은 돈"
               rows={[
                 { label: `잔금대출(${final.name})`, note: `감정가 ${man(x.appraisal)} 기준으로 다시 심사`, amount: finalLoan, kind: 'in' },

@@ -10,6 +10,9 @@ import { presaleSchedule } from './presale'
 import { availableCash, familyLoanRule, giftDeduction, giftTax, householdGift } from './family'
 import { firstMonthSplit } from './loan'
 import { AREAS, encodeCoord, naverMapUrl } from './naver'
+import { NO_ASSETS, netWorth, ownCash } from './assets'
+
+const withCash = (p: Profile, savings: number): Profile => ({ ...p, assets: { ...NO_ASSETS, savings } })
 
 const couple: Profile = {
   me: { age: 31, income: 5500, job: 'employee', tenure: 4 },
@@ -20,8 +23,8 @@ const couple: Profile = {
   kids: 0,
   homeless: true,
   firstTime: true,
-  cash: 25000,
-  netAssets: 25000,
+  assets: { ...NO_ASSETS, savings: 25000 },
+  useSubscription: false,
   debts: [],
   giftMe: 0,
   giftSpouse: 0,
@@ -174,7 +177,7 @@ describe('정책 대출', () => {
 describe('살 수 있는 집', () => {
   test('현금이 많을수록 더 비싼 집을 살 수 있다', () => {
     const a = maxAffordable(couple, seoul)!
-    const b = maxAffordable({ ...couple, cash: 40000 }, seoul)!
+    const b = maxAffordable(withCash(couple, 40000), seoul)!
     expect(b.price).toBeGreaterThan(a.price)
     expect(a.left).toBeGreaterThanOrEqual(0)
   })
@@ -183,19 +186,19 @@ describe('살 수 있는 집', () => {
     expect(plan.cashNeeded).toBeCloseTo(70000 - plan.loan.amount + plan.costTotal)
   })
   test('현금이 넉넉하면 한도까지 다 빌리지 않고 모자란 만큼만 빌린다', () => {
-    const rich = { ...couple, cash: 60000 }
+    const rich = withCash(couple, 60000)
     const plan = planFor(rich, seoul, 70000)
     expect(plan.loan.amount).toBeLessThan(bestLoan(rich, seoul, 70000).amount)
     expect(plan.left).toBeGreaterThanOrEqual(0)
     expect(plan.left).toBeLessThan(1)
   })
   test('현금이 없으면 살 수 있는 집이 없다', () => {
-    expect(maxAffordable({ ...couple, cash: 0 }, seoul)).toBeNull()
+    expect(maxAffordable(withCash(couple, 0), seoul)).toBeNull()
   })
 })
 
 describe('미래 계산기', () => {
-  const single: Profile = { ...couple, spouse: null, married: 'single', cash: 3000, me: { age: 26, income: 3800, job: 'employee', tenure: 1 } }
+  const single: Profile = { ...withCash(couple, 3000), spouse: null, married: 'single', me: { age: 26, income: 3800, job: 'employee', tenure: 1 } }
   const f = { monthlySaving: 150, savingYieldPct: 3, incomeGrowthPct: 3, priceGrowthPct: 2, target: 50000, horizon: 15 }
   test('해마다 모은 돈이 늘어난다', () => {
     const rows = projectFuture(single, { ...seoul, region: 'capital' }, f)
@@ -325,5 +328,24 @@ describe('네이버 부동산 주소', () => {
     expect(url.searchParams.get('tradeTypes')).toBe('B2')
     expect(url.searchParams.get('warrantyPrice')).toBe('0-10000000')
     expect(url.searchParams.get('rentPrice')).toBe('0-600000')
+  })
+})
+
+describe('모은 돈과 재산', () => {
+  const p: Profile = {
+    ...couple,
+    assets: { savings: 10000, checking: 500, deposit: 5000, invest: 2000, subscription: 1200, other: 1500 },
+    debts: [{ id: 'a', kind: 'credit', balance: 3000, ratePct: 6, years: 5 }],
+  }
+  test('집 사는 데 쓸 돈은 예적금·입출금·보증금·투자, 청약통장은 고를 때만', () => {
+    expect(ownCash(p)).toBe(17500)
+    expect(ownCash({ ...p, useSubscription: true })).toBe(18700)
+  })
+  test('순자산은 모든 재산에서 대출 잔액을 뺀다', () => {
+    expect(netWorth(p)).toBe(20200 - 3000)
+  })
+  test('순자산이 정책 대출 기준을 넘으면 디딤돌이 안 된다', () => {
+    const rich: Profile = { ...p, assets: { ...p.assets, other: 60000 } }
+    expect(policyEligibility(rich, 40000, 'buy').find((e) => e.loan.id === 'didimdol')!.ok).toBe(false)
   })
 })

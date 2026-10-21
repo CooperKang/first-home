@@ -2,6 +2,8 @@ import type { Person, Profile } from '../calc/afford'
 import { DEBT_KINDS, type Debt, type DebtKind } from '../calc/loan'
 import { setProfile, useStore } from '../store'
 import { FamilyFields } from './Family'
+import { ASSET_KINDS, debtBalance, netWorth, ownCash, totalAssets } from '../calc/assets'
+import { man } from '../format'
 import { Grid2, MoneyField, NumberField, Panel, Segmented, Toggle } from './ui'
 
 const JOBS: { id: Person['job']; label: string }[] = [
@@ -77,6 +79,50 @@ function DebtList({ debts, onChange }: { debts: Debt[]; onChange: (d: Debt[]) =>
   )
 }
 
+// 모은 돈을 항목별로 넣으면 '집 사는 데 쓸 돈'과 '순자산'을 같이 계산한다
+function AssetFields() {
+  const { profile: p } = useStore()
+  const set = (patch: Partial<Profile>) => setProfile((x) => ({ ...x, ...patch }))
+  const debt = debtBalance(p)
+  return (
+    <Panel title={p.spouse ? '모은 돈과 재산(부부 합산)' : '모은 돈과 재산'}>
+      <Grid2>
+        {ASSET_KINDS.map((k) => (
+          <MoneyField key={k.id} label={k.label} value={p.assets[k.id]} onChange={(v) => set({ assets: { ...p.assets, [k.id]: v } })} hint={k.hint} />
+        ))}
+      </Grid2>
+      {p.assets.subscription > 0 && (
+        <Toggle
+          label="청약통장도 해지해서 집 사는 데 쓸게요"
+          checked={p.useSubscription}
+          onChange={(useSubscription) => set({ useSubscription })}
+          hint="해지하면 그동안 쌓은 납입 횟수와 가입 기간이 없어져요"
+        />
+      )}
+      <dl className="num divide-y divide-rule rounded-xl bg-paper px-4 text-[14px]">
+        <div className="flex items-baseline justify-between gap-3 py-3">
+          <dt>
+            <span className="block font-semibold">집 사는 데 쓸 수 있는 돈</span>
+            <span className="block text-[12px] text-muted">
+              예적금, 입출금, 보증금, 투자{p.useSubscription ? ', 청약통장' : ''}. 부모님 도움은 아래 가족 도움에 따로 넣어요
+            </span>
+          </dt>
+          <dd className="shrink-0 text-[18px] font-bold">{man(ownCash(p))}</dd>
+        </div>
+        <div className="flex items-baseline justify-between gap-3 py-3">
+          <dt>
+            <span className="block font-semibold">순자산</span>
+            <span className="block text-[12px] text-muted">
+              재산 {man(totalAssets(p))} − 대출 잔액 {man(debt)}. 디딤돌·버팀목 같은 정책 대출의 자산 심사에 써요
+            </span>
+          </dt>
+          <dd className="shrink-0 text-[18px] font-bold">{man(netWorth(p))}</dd>
+        </div>
+      </dl>
+    </Panel>
+  )
+}
+
 // 모든 계산기가 같이 쓰는 '내 상황' 입력
 export default function ProfileForm({ compact = false }: { compact?: boolean }) {
   const { profile: p } = useStore()
@@ -113,7 +159,7 @@ export default function ProfileForm({ compact = false }: { compact?: boolean }) 
         )}
       </Panel>
 
-      <Panel title="집과 돈">
+      <Panel title="집 보유">
         <Toggle
           label="세대원 모두 지금 집이 없어요"
           checked={p.homeless}
@@ -128,16 +174,9 @@ export default function ProfileForm({ compact = false }: { compact?: boolean }) 
             hint="배우자가 결혼 전에 집을 가졌던 적이 있으면 생애최초가 아니에요"
           />
         )}
-        <Grid2>
-          <MoneyField
-            label="집 사는 데 쓸 수 있는 현금"
-            value={p.cash}
-            onChange={(cash) => set({ cash })}
-            hint="예적금, 돌려받을 전세보증금 등 내 돈. 부모님 도움은 아래 '가족 도움'에 따로 넣어요"
-          />
-          <MoneyField label="순자산" value={p.netAssets} onChange={(netAssets) => set({ netAssets })} hint="부부 합산 재산 − 부채. 정책 대출 심사에 써요" />
-        </Grid2>
       </Panel>
+
+      <AssetFields />
 
       <FamilyFields />
 

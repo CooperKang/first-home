@@ -15,6 +15,7 @@ import {
 import { debtAnnualService, firstMonthPayment, principalFromAnnual, type Debt, type Method } from './loan'
 import { purchaseCosts, type CostLine } from './costs'
 import { availableCash } from './family'
+import { netWorth, type Assets } from './assets'
 
 export type Person = {
   age: number // 만 나이
@@ -32,8 +33,8 @@ export type Profile = {
   kids: number
   homeless: boolean // 세대원 모두 무주택
   firstTime: boolean // 세대원 모두 집을 가진 적이 없음
-  cash: number // 지금 쓸 수 있는 현금(예적금, 청약통장 제외 등)
-  netAssets: number // 순자산(정책대출 자산 심사용)
+  assets: Assets // 부부 합산 모은 돈과 재산(항목별)
+  useSubscription: boolean // 청약통장도 해지해서 쓸지
   debts: Debt[]
   giftMe: number // 부모님께 증여받을 금액(나)
   giftSpouse: number // 배우자가 증여받을 금액
@@ -157,7 +158,7 @@ export function policyEligibility(p: Profile, price: number, kind: 'buy' | 'rent
     const reasons: string[] = []
     if (!p.homeless) reasons.push('세대원 모두 무주택이어야 해요')
     if (inc > loan.incomeMax) reasons.push(`소득 ${loan.incomeMax.toLocaleString()}만원 이하만 돼요`)
-    if (loan.assetsMax && p.netAssets > loan.assetsMax) reasons.push(`순자산 ${loan.assetsMax.toLocaleString()}만원 이하만 돼요`)
+    if (loan.assetsMax && netWorth(p) > loan.assetsMax) reasons.push(`순자산 ${loan.assetsMax.toLocaleString()}만원 이하만 돼요`)
     if (kind === 'buy' && loan.priceMax && price > loan.priceMax) reasons.push(`${(loan.priceMax / 10000).toFixed(0)}억원 이하 주택만 돼요`)
     if (kind === 'rent' && loan.depositMax && price > loan.depositMax) reasons.push(`보증금 ${(loan.depositMax / 10000).toFixed(0)}억원 이하만 돼요`)
     if (loan.id === 'didimdolFirst' && !p.firstTime) reasons.push('생애최초 구입이어야 해요')

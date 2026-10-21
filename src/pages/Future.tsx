@@ -9,7 +9,8 @@ import Listings from '../components/Listings'
 import ProfileForm from '../components/ProfileForm'
 import { Ledger, MoneyField, Note, NumberField, PageHead, Panel, Segmented } from '../components/ui'
 import { man, manShort } from '../format'
-import { setProfile, useLocal, useStore } from '../store'
+import { useLocal, useStore } from '../store'
+import { ownCash } from '../calc/assets'
 
 // 살 수 있는 집값(초록 실선)과 목표 집값(황토 점선)
 const CAN = '#0f8b6d'
@@ -157,7 +158,18 @@ export default function Future() {
           {tab === 'plan' && (
             <Panel title="저축 계획">
               <MoneyField label="원하는 집 가격(지금 시세)" value={f.target} onChange={(target) => setF({ ...f, target })} step={1000} />
-              <MoneyField label="지금 모아 둔 돈" value={p.cash} onChange={(cash) => setProfile((x) => ({ ...x, cash }))} hint="'내 상황'의 현금과 같은 값이에요" />
+              <div className="flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3">
+                <span className="min-w-0">
+                  <span className="block text-[14px] font-semibold">지금 모아 둔 돈</span>
+                  <span className="block text-[12px] text-muted">'내 상황'의 예적금·보증금 등을 합친 금액</span>
+                </span>
+                <span className="num shrink-0 text-right">
+                  <span className="block text-[18px] font-bold">{man(ownCash(p))}</span>
+                  <button type="button" onClick={() => setTab('me')} className="text-[13px] font-semibold text-bank underline underline-offset-4">
+                    항목별로 고치기
+                  </button>
+                </span>
+              </div>
               <MoneyField label="매달 모으는 돈" value={f.monthlySaving} onChange={(monthlySaving) => setF({ ...f, monthlySaving })} step={10} />
               <div className="grid grid-cols-2 gap-4">
                 <NumberField label="저축·투자 수익률" suffix="%/년" step={0.5} value={f.savingYieldPct} onChange={(savingYieldPct) => setF({ ...f, savingYieldPct })} />

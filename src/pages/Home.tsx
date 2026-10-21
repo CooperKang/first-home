@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { maxAffordable, type Profile } from '../calc/afford'
+import { NO_ASSETS, ownCash } from '../calc/assets'
 import { POLICY_AS_OF, regionInfo } from '../calc/policy'
 import { Stamp } from '../components/ui'
 import { man } from '../format'
@@ -12,14 +13,14 @@ const PERSONAS: { id: string; name: string; desc: string; go: Route; profile: Pr
     name: '사회초년생',
     desc: '입사 1~2년, 지금은 전월세. 몇 년 모으면 될지 궁금해요',
     go: 'future',
-    profile: { ...DEFAULT_PROFILE, me: { age: 26, income: 3600, job: 'employee', tenure: 1.5 }, cash: 3000, netAssets: 3000 },
+    profile: { ...DEFAULT_PROFILE, me: { age: 26, income: 3600, job: 'employee', tenure: 1.5 }, assets: { ...NO_ASSETS, savings: 3000 } },
   },
   {
     id: 'first',
     name: '생애최초 1인 가구',
     desc: '혼자 첫 집을 사려고 해요',
     go: 'buy',
-    profile: { ...DEFAULT_PROFILE, me: { age: 32, income: 5500, job: 'employee', tenure: 5 }, cash: 15000, netAssets: 15000 },
+    profile: { ...DEFAULT_PROFILE, me: { age: 32, income: 5500, job: 'employee', tenure: 5 }, assets: { ...NO_ASSETS, savings: 15000 } },
   },
   {
     id: 'newlywed',
@@ -32,8 +33,7 @@ const PERSONAS: { id: string; name: string; desc: string; go: Route; profile: Pr
       spouse: { age: 30, income: 4300, job: 'employee', tenure: 3 },
       married: 'married',
       marriageYears: 1,
-      cash: 25000,
-      netAssets: 25000,
+      assets: { ...NO_ASSETS, savings: 25000 },
     },
   },
   {
@@ -49,16 +49,15 @@ const PERSONAS: { id: string; name: string; desc: string; go: Route; profile: Pr
       marriageYears: 3,
       newborn: true,
       kids: 1,
-      cash: 20000,
-      netAssets: 22000,
+      assets: { ...NO_ASSETS, savings: 20000, other: 2000 },
     },
   },
 ]
 
-const TOOLS: { id: Route; title: string; desc: string }[] = [
+const TOOLS: { id: Route; q?: string; title: string; desc: string }[] = [
   { id: 'buy', title: '얼마짜리 집까지 살 수 있을까', desc: 'LTV, 스트레스 DSR, 장래소득, 집값별 상한, 정책 대출, 취득세·중개보수·법무사비까지 한 번에' },
   { id: 'future', title: '몇 년 뒤면 그 집을 살 수 있을까', desc: '매달 모으는 돈, 연봉 인상, 집값 상승을 넣고 원하는 집에 닿는 해를 찾아요' },
-  { id: 'dsr', title: 'DSR로 얼마까지 빌릴 수 있을까', desc: '신용대출·할부가 한도를 얼마나 깎는지, 장래소득을 받으면 얼마나 느는지' },
+  { id: 'buy', q: 'dsr', title: 'DSR로 얼마까지 빌릴 수 있을까', desc: '신용대출·할부가 한도를 얼마나 깎는지, 장래소득을 받으면 얼마나 느는지' },
   { id: 'rent', title: '전세·월세, 내 돈은 얼마나 들까', desc: '버팀목·청년 전세대출, 한 달 실제 비용, 깡통전세와 보증보험 점검' },
   { id: 'presale', title: '분양에 당첨되면 언제 얼마가 필요할까', desc: '계약금, 중도금 대출과 이자후불제 이자, 입주 때 잔금대출과 세금' },
   { id: 'policy', title: '지금 대출 규제, 나한테는 어떻게 적용될까', desc: '6·27부터 10·15, 8·13까지 바뀐 규제와 내 상황에 맞는 기준' },
@@ -123,7 +122,7 @@ export default function Home() {
           <div className="ledger-lines relative rounded-b-2xl border border-t-0 border-rule px-6 pt-4 pb-28 shadow-[0_18px_40px_-24px_rgb(19_74_61/0.45)] transition group-hover:-translate-y-0.5">
             <div className="num grid grid-cols-[1fr_auto] gap-y-[18px] pt-[6px] text-[15px] leading-[26px]">
               <span className="text-muted">모은 돈</span>
-              <span className="text-right font-semibold">{man(p.cash)}</span>
+              <span className="text-right font-semibold">{man(ownCash(p))}</span>
               <span className="text-muted">대출</span>
               <span className="text-right font-semibold text-bank">+{man(plan?.loan.amount ?? 0)}</span>
               <span className="text-muted">세금·수수료</span>
@@ -145,8 +144,8 @@ export default function Home() {
           <h2 className="text-[20px] font-bold">계산기</h2>
           <ul className="mt-4 divide-y divide-rule">
             {TOOLS.map((t) => (
-              <li key={t.id}>
-                <a href={href(t.id)} className="group flex items-start justify-between gap-4 py-4">
+              <li key={t.title}>
+                <a href={t.q ? `${href(t.id)}?q=${t.q}` : href(t.id)} className="group flex items-start justify-between gap-4 py-4">
                   <span>
                     <span className="block text-[17px] font-bold group-hover:text-bank">{t.title}</span>
                     <span className="mt-0.5 block text-[14px] leading-snug text-muted">{t.desc}</span>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ownCash } from '../calc/assets'
 import { jeonseRisk, monthlyCost, rentFee, rentLoans, toMonthly, type RentInput } from '../calc/rent'
 import { REGIONS, regionInfo } from '../calc/policy'
 import Listings from '../components/Listings'
@@ -40,7 +41,7 @@ export default function Rent() {
   const risk = jeonseRisk(input)
   const fee = rentFee(input)
   const needCash = cost.own + fee.fee
-  const ok = p.cash >= needCash
+  const ok = ownCash(p) >= needCash
   const capital = regionInfo(s.region).capital
   const best = loans.reduce((a, b) => (b.monthlyInterest / Math.max(b.amount, 1) < a.monthlyInterest / Math.max(a.amount, 1) ? b : a))
 
@@ -106,7 +107,7 @@ export default function Rent() {
               <Stamp ok={ok}>{ok ? <>입주<br />가능</> : <>현금<br />부족</>}</Stamp>
             </div>
             <Ledger
-              start={p.cash}
+              start={ownCash(p)}
               rows={[
                 ...(r.kind === 'jeonse' && cost.borrowed ? [{ label: loan.name, note: `연 ${loan.ratePct.toFixed(2)}%`, amount: cost.borrowed, kind: 'in' as const }] : []),
                 { label: '보증금', amount: r.deposit, kind: 'out' },

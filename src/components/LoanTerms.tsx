@@ -30,7 +30,7 @@ export default function LoanTerms({ showMoving = true }: { showMoving?: boolean 
         onChange={(lender) => setScenario({ lender })}
         hint={s.lender === 'second' ? '한도는 커지지만 금리가 높아요. 2금융 대출 기록이 신용점수에 남을 수 있어요' : undefined}
       />
-      <Toggle label="장래소득 반영 요청" checked={s.useFutureIncome} onChange={(useFutureIncome) => setScenario({ useFutureIncome })} hint="만 20~34세 근로소득자, 만기 10년 이상일 때 미래 소득 증가분을 인정해 줘요" />
+      <Toggle label="장래소득 반영 요청" checked={s.useFutureIncome} onChange={(useFutureIncome) => setScenario({ useFutureIncome })} hint="만 20~34세 근로소득자, 만기 10년 이상일 때 미래 소득 증가분을 인정해 줘요. 은행마다 적용 여부와 비율이 달라서 상담 때 꼭 물어보세요" />
       {p.spouse && <Toggle label="배우자와 소득 합산" checked={s.coBorrow} onChange={(coBorrow) => setScenario({ coBorrow })} hint="배우자를 공동 차주로 넣어요" />}
       <Toggle label="전용면적 85㎡ 초과(34평형 넘음)" checked={s.over85} onChange={(over85) => setScenario({ over85 })} hint="농어촌특별세 0.2%가 더 붙어요" />
       {showMoving && <MoneyField label="이사·입주청소·가전 등" value={s.moving} onChange={(moving) => setScenario({ moving })} step={50} />}

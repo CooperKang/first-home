@@ -1,5 +1,6 @@
 // 부모님 등 가족에게 받는 도움: 증여와 차용. 금액은 만원.
 import type { Profile } from './afford'
+import { ownCash } from './assets'
 
 // 증여재산공제(직계존속 → 성인 자녀, 10년 합산 5천만원)
 export const GIFT_BASE = 5000
@@ -58,5 +59,5 @@ export function familyLoanRule(amount: number, ratePct: number) {
 // 집 살 때 쓸 수 있는 돈 = 모은 돈 + 증여(세금 뺀 금액) + 가족에게 빌린 돈
 export function availableCash(p: Profile) {
   const g = householdGift(p)
-  return p.cash + g.amount - g.tax + p.familyLoan
+  return ownCash(p) + g.amount - g.tax + p.familyLoan
 }

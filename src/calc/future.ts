@@ -1,5 +1,6 @@
 // 지금부터 매달 모으면 몇 년 뒤 얼마짜리 집을 볼 수 있는지. 금액은 만원.
 import { maxAffordable, type Plan, type Profile, type Scenario } from './afford'
+import { ownCash, withSavings } from './assets'
 
 export type FutureInput = {
   monthlySaving: number
@@ -28,14 +29,15 @@ export function projectFuture(p: Profile, s: Scenario, f: FutureInput, lastOnly 
   const g = f.incomeGrowthPct / 100
   const monthlyYield = f.savingYieldPct / 100 / 12
   const rows: FutureYear[] = []
-  let cash = p.cash
+  const start = ownCash(p)
+  let cash = start
   for (let y = 0; y <= f.horizon; y++) {
     if (y > 0) {
       const monthly = f.monthlySaving * (1 + g) ** (y - 1)
       for (let m = 0; m < 12; m++) cash = cash * (1 + monthlyYield) + monthly
     }
     if (lastOnly && y < f.horizon) continue
-    const future: Profile = { ...p, cash, me: grow(p.me, g, y), spouse: p.spouse ? grow(p.spouse, g, y) : null }
+    const future: Profile = { ...withSavings(p, cash - start), me: grow(p.me, g, y), spouse: p.spouse ? grow(p.spouse, g, y) : null }
     const plan = maxAffordable(future, s)
     rows.push({
       year: y,

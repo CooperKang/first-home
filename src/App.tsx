@@ -4,7 +4,6 @@ import { POLICY_AS_OF } from './calc/policy'
 import { resetAll } from './store'
 import Home from './pages/Home'
 import Buy from './pages/Buy'
-import Dsr from './pages/Dsr'
 import Future from './pages/Future'
 import Rent from './pages/Rent'
 import Presale from './pages/Presale'
@@ -13,7 +12,6 @@ import Policy from './pages/Policy'
 const PAGES: Record<Route, () => React.JSX.Element> = {
   home: Home,
   buy: Buy,
-  dsr: Dsr,
   future: Future,
   rent: Rent,
   presale: Presale,
@@ -74,7 +72,7 @@ export default function App() {
       </footer>
 
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-sheet/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="주 메뉴">
-        <ul className="grid grid-cols-6">
+        <ul className="grid grid-cols-5">
           {ROUTES.slice(1).map((r) => (
             <li key={r.id}>
               <a
