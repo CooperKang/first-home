@@ -39,7 +39,7 @@ export default function LoanTerms({ showMoving = true }: { showMoving?: boolean 
           value={s.spouseFuture}
           options={SPOUSE_FUTURE.map((o) => ({ id: o.id, label: o.label }))}
           onChange={(spouseFuture) => setScenario({ spouseFuture })}
-          hint="명의자 기준의 절반만 보는 은행도, 똑같이 보는 은행도 있어요. 확실하지 않으면 절반으로 두세요"
+          hint="공개된 기준은 없고, 은행에 따라 명의자 기준의 절반만 보기도 똑같이 보기도 해요. 확실하지 않으면 절반으로 두세요"
         />
       )}
       <Toggle label="전용면적 85㎡ 초과(34평형 넘음)" checked={s.over85} onChange={(over85) => setScenario({ over85 })} hint="농어촌특별세 0.2%가 더 붙어요" />

@@ -118,3 +118,46 @@ input[type='number'] {
     display: none;
   }
 }
+
+/* 금액 슬라이더: 손가락으로 잡기 쉬운 큰 손잡이, 채워진 만큼 초록 */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--color-bank) var(--fill), var(--color-rule) var(--fill));
+}
+.slider::-moz-range-track {
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--color-bank) var(--fill), var(--color-rule) var(--fill));
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  margin-top: -10px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid var(--color-bank);
+  box-shadow: 0 2px 6px rgb(19 74 61 / 0.25);
+}
+.slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #fff;
+  border: 3px solid var(--color-bank);
+}
+.slider:focus-visible {
+  outline: none;
+}
+.slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px rgb(31 111 92 / 0.3);
+}

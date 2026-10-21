@@ -11,7 +11,7 @@ import Repayment from '../components/Repayment'
 import { FamilyGuide } from '../components/Family'
 import { familyRows } from '../calc/familyRows'
 import { Ledger, MoneyField, Note, PageHead, Panel, Segmented, Stamp, type LedgerRow } from '../components/ui'
-import { man } from '../format'
+import { man, manShort } from '../format'
 import { useLocal, useStore } from '../store'
 import { clearQuery, routeQuery } from '../router'
 import AskBank, { FutureIncomeNote, SpouseFutureRange } from '../components/AskBank'
@@ -61,6 +61,7 @@ export default function Buy() {
   useEffect(clearQuery, [])
 
   const plan = useMemo(() => (mode.mode === 'price' ? planFor(p, s, mode.price) : maxAffordable(p, s)), [p, s, mode])
+  const maxPrice = useMemo(() => (mode.mode === 'price' ? (maxAffordable(p, s)?.price ?? 0) : 0), [p, s, mode.mode])
   const futureIncome = recognizedIncome(p, s).some((x) => x.rate > 0)
   const insights = useMemo(() => buyInsights(p, s, plan), [p, s, plan])
   const ok = !!plan && plan.left >= 0
@@ -96,7 +97,13 @@ export default function Buy() {
               <Panel>
                 {question}
                 {mode.mode === 'price' && (
-                  <MoneyField label="보고 있는 집 가격" value={mode.price} onChange={(price) => setMode({ ...mode, price })} step={1000} />
+                  <MoneyField
+                    label="보고 있는 집 가격"
+                    value={mode.price}
+                    onChange={(price) => setMode({ ...mode, price })}
+                    step={1000}
+                    slider={{ min: 10000, max: 300000, step: 1000, marks: maxPrice ? [{ value: maxPrice, label: `최대 ${manShort(maxPrice)}` }] : [] }}
+                  />
                 )}
 
                 {plan ? (

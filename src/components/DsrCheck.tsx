@@ -4,7 +4,7 @@ import { existingDebtService, generalLoan, recognizedIncome } from '../calc/affo
 import { DEBT_KINDS, debtAnnualService, unitAnnualService } from '../calc/loan'
 import { DSR_LIMIT, FUTURE_INCOME, futureIncomeRate, stressRate } from '../calc/policy'
 import { MoneyField, Note, Panel, Stat } from './ui'
-import { man, monthly, pct } from '../format'
+import { man, manShort, monthly, pct } from '../format'
 import { useLocal, useStore } from '../store'
 import { FutureIncomeNote, SpouseFutureRange } from './AskBank'
 
@@ -60,7 +60,13 @@ export default function DsrCheck({ children }: { children?: ReactNode }) {
     <>
       <Panel>
         {children}
-        <MoneyField label="주택담보대출 금액" value={x.loan} onChange={(loan) => setX({ ...x, loan })} step={1000} />
+        <MoneyField
+          label="받으려는 주택담보대출"
+          value={x.loan}
+          onChange={(loan) => setX({ ...x, loan })}
+          step={1000}
+          slider={{ min: 0, max: Math.max(100000, Math.ceil((r.max * 1.2) / 10000) * 10000), step: 500, marks: [{ value: r.max, label: `한도 ${manShort(r.max)}` }] }}
+        />
         <Gauge value={r.dsr} limit={r.limit} />
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <Stat label="내 DSR" value={<span className={r.dsr > r.limit ? 'text-seal' : ''}>{pct(r.dsr)}</span>} sub="스트레스 금리 포함" />

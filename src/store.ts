@@ -12,6 +12,7 @@ export const DEFAULT_PROFILE: Profile = {
   kids: 0,
   homeless: true,
   firstTime: true,
+  sharedHousehold: false,
   assets: { ...NO_ASSETS, savings: 6000, deposit: 2000 },
   useSubscription: false,
   debts: [],

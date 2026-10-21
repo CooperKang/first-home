@@ -157,7 +157,7 @@ export default function Future() {
           />
           {tab === 'plan' && (
             <Panel title="저축 계획">
-              <MoneyField label="원하는 집 가격(지금 시세)" value={f.target} onChange={(target) => setF({ ...f, target })} step={1000} />
+              <MoneyField label="원하는 집 가격(지금 시세)" value={f.target} onChange={(target) => setF({ ...f, target })} step={1000} slider={{ min: 10000, max: 300000, step: 1000 }} />
               <div className="flex items-center justify-between gap-3 rounded-xl bg-paper px-4 py-3">
                 <span className="min-w-0">
                   <span className="block text-[14px] font-semibold">지금 모아 둔 돈</span>
@@ -170,7 +170,7 @@ export default function Future() {
                   </button>
                 </span>
               </div>
-              <MoneyField label="매달 모으는 돈" value={f.monthlySaving} onChange={(monthlySaving) => setF({ ...f, monthlySaving })} step={10} />
+              <MoneyField label="매달 모으는 돈" value={f.monthlySaving} onChange={(monthlySaving) => setF({ ...f, monthlySaving })} step={10} slider={{ min: 0, max: 500, step: 10 }} />
               <div className="grid grid-cols-2 gap-4">
                 <NumberField label="저축·투자 수익률" suffix="%/년" step={0.5} value={f.savingYieldPct} onChange={(savingYieldPct) => setF({ ...f, savingYieldPct })} />
                 <NumberField label="연봉 인상률" suffix="%/년" step={0.5} value={f.incomeGrowthPct} onChange={(incomeGrowthPct) => setF({ ...f, incomeGrowthPct })} hint="저축액도 같이 늘려요" />

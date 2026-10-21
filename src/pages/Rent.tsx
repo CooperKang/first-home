@@ -74,8 +74,8 @@ export default function Rent() {
                 onChange={(kind) => setR({ ...r, kind })}
               />
               <Segmented label="지역" value={s.region} options={REGIONS.map((x) => ({ id: x.id, label: x.label }))} onChange={(region) => setScenario({ region })} />
-              <MoneyField label="보증금" value={r.deposit} onChange={(deposit) => setR({ ...r, deposit })} step={500} />
-              {r.kind === 'wolse' && <MoneyField label="월세" value={r.monthlyRent} onChange={(monthlyRent) => setR({ ...r, monthlyRent })} step={5} />}
+              <MoneyField label="보증금" value={r.deposit} onChange={(deposit) => setR({ ...r, deposit })} step={500} slider={{ min: 0, max: 100000, step: 500 }} />
+              {r.kind === 'wolse' && <MoneyField label="월세" value={r.monthlyRent} onChange={(monthlyRent) => setR({ ...r, monthlyRent })} step={5} slider={{ min: 0, max: 300, step: 5 }} />}
               <MoneyField label="같은 집 매매 시세" value={r.salePrice} onChange={(salePrice) => setR({ ...r, salePrice })} step={500} hint="호갱노노·KB부동산에서 같은 동·평형의 최근 거래가. 빌라는 시세가 부풀려진 경우가 많아요" />
               <MoneyField label="공시가격" value={r.publicPrice} onChange={(publicPrice) => setR({ ...r, publicPrice })} step={500} hint="부동산공시가격알리미(realtyprice.kr)에서 주소로 찾아요. 보증보험 기준이에요" />
               <div className="grid grid-cols-2 gap-4">

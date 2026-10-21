@@ -45,7 +45,11 @@ type NumProps = {
   step?: number
   max?: number
   readout?: (v: number) => string
+  slider?: Slider
 }
+
+// 금액이 큰 입력은 끌어서 맞출 수 있게 한다. marks는 눈금(예: DSR 한도) 위치.
+export type Slider = { min: number; max: number; step: number; marks?: { value: number; label: string }[] }
 
 // 입력 중인 글자를 그대로 들고 있다가 숫자로 바꿔 올려 보낸다.
 // type="number"는 쉼표를 못 쓰고 '012999'처럼 앞자리 0이 남아서 글자 입력칸을 쓴다.
@@ -53,7 +57,7 @@ function toText(v: number, decimal: boolean) {
   return v ? formatInput(String(v), decimal) : ''
 }
 
-export function NumberField({ label, value, onChange, suffix, hint, step = 1, max, readout }: NumProps) {
+export function NumberField({ label, value, onChange, suffix, hint, step = 1, max, readout, slider }: NumProps) {
   const id = useId()
   const decimal = step < 1
   const [text, setText] = useState(() => toText(value, decimal))
@@ -113,7 +117,54 @@ export function NumberField({ label, value, onChange, suffix, hint, step = 1, ma
         />
         <span className="ml-2 shrink-0 text-[14px] text-muted">{suffix}</span>
       </div>
+      {slider && <RangeSlider label={label} value={value} onChange={onChange} {...slider} />}
     </Field>
+  )
+}
+
+function RangeSlider({ label, value, onChange, min, max, step, marks = [] }: Slider & { label: string; value: number; onChange: (v: number) => void }) {
+  const at = (v: number) => `${((Math.min(Math.max(v, min), max) - min) / (max - min)) * 100}%`
+  return (
+    <div className="mt-3 px-1">
+      <div className="relative">
+        <input
+          type="range"
+          aria-label={`${label} 조절`}
+          className="slider w-full"
+          min={min}
+          max={max}
+          step={step}
+          value={Math.min(Math.max(value, min), max)}
+          onChange={(e) => onChange(Number(e.target.value))}
+          style={{ '--fill': at(value) } as React.CSSProperties}
+        />
+        {marks
+          .filter((m) => m.value >= min && m.value <= max)
+          .map((m) => (
+            <span
+              key={m.label}
+              className="pointer-events-none absolute top-[3px] h-[18px] w-0.5 -translate-x-1/2 bg-seal"
+              style={{ left: at(m.value) }}
+              aria-hidden
+            />
+          ))}
+      </div>
+      <div className="relative mt-1 h-4 text-[12px] text-muted">
+        <span className="num absolute left-0">{man(min)}</span>
+        {marks
+          .filter((m) => m.value >= min && m.value <= max)
+          .map((m) => (
+            <span
+              key={m.label}
+              className="num absolute -translate-x-1/2 font-semibold whitespace-nowrap text-seal"
+              style={{ left: `clamp(3rem, ${at(m.value)}, calc(100% - 3rem))` }}
+            >
+              {m.label}
+            </span>
+          ))}
+        <span className="num absolute right-0">{man(max)}</span>
+      </div>
+    </div>
   )
 }
 
@@ -211,7 +262,9 @@ function LedgerLine({ label, note, amount, balance }: { label: string; note?: st
         {amount}
         <p className={`text-[12px] text-muted sm:hidden ${balance < 0 ? 'text-seal' : ''}`}>잔액 {man(balance, '')}</p>
       </div>
-      <p className={`num hidden w-28 shrink-0 text-right text-[14px] leading-snug font-semibold whitespace-nowrap sm:block ${balance < 0 ? 'text-seal' : ''}`}>{man(balance, '')}</p>
+      <p className={`num hidden w-28 shrink-0 text-right text-[14px] leading-snug font-semibold whitespace-nowrap sm:block ${balance < 0 ? 'text-seal' : ''}`}>
+        {man(balance, '')}
+      </p>
     </li>
   )
 }

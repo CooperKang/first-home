@@ -44,7 +44,7 @@ export default function Presale() {
         <div className="space-y-4">
           <Panel title="분양 조건">
             <Segmented label="지역" value={s.region} options={REGIONS.map((r) => ({ id: r.id, label: r.label }))} onChange={(region) => setScenario({ region })} />
-            <MoneyField label="분양가" value={x.price} onChange={(price) => setX({ ...x, price })} step={1000} />
+            <MoneyField label="분양가" value={x.price} onChange={(price) => setX({ ...x, price })} step={1000} slider={{ min: 10000, max: 300000, step: 1000 }} />
             <MoneyField label="발코니 확장·유상 옵션" value={x.options} onChange={(options) => setX({ ...x, options })} step={100} hint="계약할 때 10%, 입주할 때 나머지를 낸다고 봤어요" />
             <div className="grid grid-cols-2 gap-4">
               <NumberField label="계약금" suffix="%" value={x.depositPct} onChange={(depositPct) => setX({ ...x, depositPct })} />

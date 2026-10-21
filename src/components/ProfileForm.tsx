@@ -4,7 +4,7 @@ import { setProfile, useStore } from '../store'
 import { FamilyFields } from './Family'
 import { ASSET_KINDS, debtBalance, netWorth, ownCash, totalAssets } from '../calc/assets'
 import { man } from '../format'
-import { Grid2, MoneyField, NumberField, Panel, Segmented, Toggle } from './ui'
+import { Grid2, MoneyField, Note, NumberField, Panel, Segmented, Toggle } from './ui'
 
 const JOBS: { id: Person['job']; label: string }[] = [
   { id: 'employee', label: '직장인(근로소득)' },
@@ -171,8 +171,20 @@ export default function ProfileForm({ compact = false }: { compact?: boolean }) 
             label="세대원 모두 집을 가져 본 적이 없어요(생애최초)"
             checked={p.firstTime}
             onChange={(firstTime) => set({ firstTime })}
-            hint="배우자가 결혼 전에 집을 가졌던 적이 있으면 생애최초가 아니에요"
+            hint="혼인신고한 배우자는 세대를 나눠도 함께 봐요. 배우자가 결혼 전에 집을 가졌다가 판 적이 있어도 생애최초가 아니에요"
           />
+        )}
+        <Toggle
+          label="부모님 등 다른 가족과 같은 주민등록등본에 올라 있어요"
+          checked={p.sharedHousehold}
+          onChange={(sharedHousehold) => set({ sharedHousehold })}
+          hint="무주택·생애최초는 내가 아니라 등본에 같이 있는 세대원 전원을 봐요"
+        />
+        {p.sharedHousehold && (
+          <Note tone="seal" title="등본에 같이 있는 가족이 집을 가지고 있으면 대출이 막혀요">
+            대출 신청일 기준으로 세대원 전원이 무주택이어야 해요(생애최초는 전원이 집을 가져 본 적도 없어야 해요). 부모님이 집이 있다면 신청 전에 세대분리해서 내가
+            세대주가 되어야 해요. 세대분리는 주민센터에서 하고, 실제로 따로 사는지 볼 수 있어요.
+          </Note>
         )}
       </Panel>
 

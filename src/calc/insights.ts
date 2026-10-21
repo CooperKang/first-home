@@ -105,7 +105,28 @@ export function buyInsights(p: Profile, s: Scenario, plan: Plan | null): Insight
     if (s.years > 30) out.push({ tone: 'seal', title: '수도권 주담대 만기는 30년까지만 돼요', body: '40년 만기로 계산하면 실제보다 한도가 크게 나와요.' })
   }
   if (price > 150000)
-    out.push({ tone: 'seal', title: '15억원을 넘으면 대출 상한이 4억원으로 떨어져요', body: '수도권·규제지역은 15억 이하 6억, 25억 이하 4억, 그 위는 2억까지만 빌려줘요.' })
+    out.push({
+      tone: 'seal',
+      title: '15억원을 넘으면 대출 상한이 4억원으로 떨어져요',
+      body: '수도권·규제지역은 15억 이하 6억, 25억 이하 4억, 그 위는 2억까지만 빌려줘요.',
+    })
+
+  // 생애최초·무주택은 등본의 세대원 전원을 본다
+  if (p.homeless) {
+    out.push({
+      tone: p.sharedHousehold ? 'seal' : 'plain',
+      title: `${p.firstTime ? '생애최초·무주택' : '무주택'}은 주민등록등본의 세대원 전원으로 판단해요`,
+      body: [
+        '대출 신청일에 등본을 떼서 함께 올라 있는 세대원이 모두 무주택인지 봐요.',
+        p.sharedHousehold ? '부모님 등 집이 있는 가족과 같은 등본이면 대출이 제한되니, 신청 전에 세대분리부터 하세요.' : '',
+        '혼인신고한 배우자는 세대를 나눠도 포함돼서 배우자의 결혼 전 주택 이력도 봐요.',
+        p.married === 'engaged' ? '혼인신고 전이라도 디딤돌처럼 결혼 예정자로 신청하는 대출은 예비 배우자 이력도 봐요.' : '',
+        '세대분리 시점을 신청일로 보는지 실행일로 보는지는 은행마다 다르니 미리 물어보세요.',
+      ]
+        .filter(Boolean)
+        .join(' '),
+    })
+  }
 
   // 생애최초·신혼·출산
   if (p.firstTime) {
@@ -128,13 +149,25 @@ export function buyInsights(p: Profile, s: Scenario, plan: Plan | null): Insight
       body: '혼인신고를 하면 배우자의 주택 보유 이력과 소득이 합쳐져요. 각자 생애최초·소득 기준을 먼저 따져 보고 시기를 정하세요.',
     })
   if (p.newborn)
-    out.push({ tone: 'bank', title: '출산 가구는 신생아 특례 대출과 취득세 감면을 확인하세요', body: '신생아 특례 디딤돌은 9억원 이하 주택, 연 1%대 금리부터 시작해요. 출산·양육 가구 취득세 감면(최대 500만원)도 같이 확인해 보세요.' })
+    out.push({
+      tone: 'bank',
+      title: '출산 가구는 신생아 특례 대출과 취득세 감면을 확인하세요',
+      body: '신생아 특례 디딤돌은 9억원 이하 주택, 연 1%대 금리부터 시작해요. 출산·양육 가구 취득세 감면(최대 500만원)도 같이 확인해 보세요.',
+    })
 
   // 소득 형태
   if (p.me.job === 'self')
-    out.push({ tone: 'plain', title: '사업·프리랜서 소득은 종합소득세 신고 금액으로 봐요', body: '경비를 많이 넣어 신고 소득이 작으면 한도도 작아요. 신고 소득이 없으면 카드 사용액·건강보험료로 추정한 소득을 쓰는데 한도가 낮게 잡혀요.' })
+    out.push({
+      tone: 'plain',
+      title: '사업·프리랜서 소득은 종합소득세 신고 금액으로 봐요',
+      body: '경비를 많이 넣어 신고 소득이 작으면 한도도 작아요. 신고 소득이 없으면 카드 사용액·건강보험료로 추정한 소득을 쓰는데 한도가 낮게 잡혀요.',
+    })
   if (p.me.job === 'employee' && p.me.tenure < 1)
-    out.push({ tone: 'plain', title: '입사 1년이 안 됐으면 소득 증빙을 미리 챙기세요', body: '재직증명서와 급여 명세서로 연 소득을 환산해 주는 은행이 많지만, 장래소득 반영이나 우대금리는 제한될 수 있어요.' })
+    out.push({
+      tone: 'plain',
+      title: '입사 1년이 안 됐으면 소득 증빙을 미리 챙기세요',
+      body: '재직증명서와 급여 명세서로 연 소득을 환산해 주는 은행이 많지만, 장래소득 반영이나 우대금리는 제한될 수 있어요.',
+    })
 
   // 금리 상승
   if (plan && !plan.loan.dsrExempt && plan.loan.amount > 0) {
@@ -168,7 +201,11 @@ export function buyInsights(p: Profile, s: Scenario, plan: Plan | null): Insight
   }
   const gift = householdGift(p)
   if (gift.tax > 0)
-    out.push({ tone: 'seal', title: `증여세 약 ${man(gift.tax)}이 나와요`, body: '공제 한도를 넘었어요. 넘는 금액은 차용증을 쓰고 빌리는 방식이 세금 면에서 나을 수 있어요.' })
+    out.push({
+      tone: 'seal',
+      title: `증여세 약 ${man(gift.tax)}이 나와요`,
+      body: '공제 한도를 넘었어요. 넘는 금액은 차용증을 쓰고 빌리는 방식이 세금 면에서 나을 수 있어요.',
+    })
 
   out.push({
     tone: 'plain',

@@ -23,6 +23,7 @@ const couple: Profile = {
   kids: 0,
   homeless: true,
   firstTime: true,
+  sharedHousehold: false,
   assets: { ...NO_ASSETS, savings: 25000 },
   useSubscription: false,
   debts: [],

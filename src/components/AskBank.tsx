@@ -28,8 +28,8 @@ export function SpouseFutureRange() {
     <div className="rounded-xl border border-mark bg-mark/15 p-4">
       <p className="text-[15px] font-bold">배우자 장래소득은 은행마다 인정 폭이 달라요</p>
       <p className="mt-1 text-[14px] leading-relaxed">
-        대출 명의자(나) 기준으로 안내하는데, 배우자는 같은 기준의 절반만 보는 은행도 있고 명의자와 똑같이 보는 은행도 있어요. 배우자 만 {sp.age}세,
-        만기 {s.years}년이면 표 비율은 +{pct(rate)}예요.
+        장래소득은 대출 명의자(나) 기준으로 안내해요. 배우자 몫은 공개된 기준이 없고, 상담 사례로는 같은 기준의 절반만 보거나 명의자와 똑같이 보는 경우가
+        있어요. 배우자에게 주택담보대출이 없어야 소득을 합칠 수 있어요. 배우자 만 {sp.age}세, 만기 {s.years}년이면 표 비율은 +{pct(rate)}예요.
       </p>
       <ul className="num mt-3 divide-y divide-mark/50 border-y border-mark/50 text-[14px]">
         {rows.map((r) => (
@@ -64,7 +64,10 @@ function asks(p: Profile, s: Scenario): Ask[] {
       why: `이 계산은 ${fi.map((x) => `+${pct(x.rate)}`).join(', ')}를 다 받는다고 봤어요. 안 해 주는 은행이면 한도가 그만큼 줄어요.`,
     })
   if (fi.some((x) => x.person === p.spouse))
-    list.push({ q: '배우자 장래소득도 인정되나요? 절반인가요, 저와 같게인가요?', why: '은행마다 배우자는 기준의 절반만 보기도, 명의자와 같게 보기도 해요. 한도 차이가 커요.' })
+    list.push({
+      q: '배우자 장래소득도 인정되나요? 절반인가요, 저와 같게인가요?',
+      why: '은행마다 배우자는 기준의 절반만 보기도, 명의자와 같게 보기도 해요. 한도 차이가 커요.',
+    })
   else if (p.me.job === 'employee' && p.me.age <= 34)
     list.push({ q: '장래소득을 인정해 주나요?', why: "지금은 '장래소득 반영 요청'을 껐거나 만기가 10년 미만이에요. 켜면 한도가 늘 수 있어요." })
   if (s.rateType === 'variable' || s.rateType === 'mixed')
@@ -75,6 +78,11 @@ function asks(p: Profile, s: Scenario): Ask[] {
     list.push({
       q: '생애최초 LTV를 적용해 주나요?',
       why: `${r.regulated ? '규제지역은 40%가 70%로' : '지방은 70%가 80%로'} 올라가요. 대신 전입·실거주 조건이 붙으니 같이 확인하세요.`,
+    })
+  if (p.homeless)
+    list.push({
+      q: '무주택·생애최초는 언제 뗀 등본으로 확인하나요?',
+      why: '신청일 기준이 원칙이지만, 실행 전까지 세대분리하면 되는지는 은행마다 달라요. 세대원 중 집이 있는 사람이 있으면 먼저 세대분리하세요.',
     })
   if (p.debts.some((d) => d.kind === 'credit' || d.kind === 'card'))
     list.push({ q: '신용대출을 갚으면 한도가 얼마나 늘어나요?', why: '신용대출은 5년, 카드론은 3년에 나눠 갚는다고 보고 DSR에 넣어요.' })

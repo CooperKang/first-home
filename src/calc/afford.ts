@@ -33,6 +33,7 @@ export type Profile = {
   kids: number
   homeless: boolean // 세대원 모두 무주택
   firstTime: boolean // 세대원 모두 집을 가진 적이 없음
+  sharedHousehold: boolean // 부모님 등 다른 가족과 같은 주민등록등본에 있음
   assets: Assets // 부부 합산 모은 돈과 재산(항목별)
   useSubscription: boolean // 청약통장도 해지해서 쓸지
   debts: Debt[]
