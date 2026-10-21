@@ -31,6 +31,7 @@ export const DEFAULT_SCENARIO: Scenario = {
   method: 'equal',
   over85: false,
   useFutureIncome: true,
+  spouseFuture: 'half',
   coBorrow: true,
   lender: 'bank',
   moving: 300,

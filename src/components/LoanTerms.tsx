@@ -1,3 +1,4 @@
+import { SPOUSE_FUTURE } from '../calc/afford'
 import { METHODS } from '../calc/loan'
 import { RATE_TYPES, REGIONS, regionInfo } from '../calc/policy'
 import { setScenario, useStore } from '../store'
@@ -32,6 +33,15 @@ export default function LoanTerms({ showMoving = true }: { showMoving?: boolean 
       />
       <Toggle label="장래소득 반영 요청" checked={s.useFutureIncome} onChange={(useFutureIncome) => setScenario({ useFutureIncome })} hint="만 20~34세 근로소득자, 만기 10년 이상일 때 미래 소득 증가분을 인정해 줘요. 은행마다 적용 여부와 비율이 달라서 상담 때 꼭 물어보세요" />
       {p.spouse && <Toggle label="배우자와 소득 합산" checked={s.coBorrow} onChange={(coBorrow) => setScenario({ coBorrow })} hint="배우자를 공동 차주로 넣어요" />}
+      {p.spouse && s.coBorrow && s.useFutureIncome && (
+        <Segmented
+          label="배우자 장래소득 인정"
+          value={s.spouseFuture}
+          options={SPOUSE_FUTURE.map((o) => ({ id: o.id, label: o.label }))}
+          onChange={(spouseFuture) => setScenario({ spouseFuture })}
+          hint="명의자 기준의 절반만 보는 은행도, 똑같이 보는 은행도 있어요. 확실하지 않으면 절반으로 두세요"
+        />
+      )}
       <Toggle label="전용면적 85㎡ 초과(34평형 넘음)" checked={s.over85} onChange={(over85) => setScenario({ over85 })} hint="농어촌특별세 0.2%가 더 붙어요" />
       {showMoving && <MoneyField label="이사·입주청소·가전 등" value={s.moving} onChange={(moving) => setScenario({ moving })} step={50} />}
     </Panel>

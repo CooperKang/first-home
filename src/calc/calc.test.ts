@@ -3,7 +3,7 @@ import { formatInput, parseInput } from '../format'
 import { futureIncomeRate, mortgageCap, stressRate } from './policy'
 import { acquisitionTax, bondCost, brokerageFee, rentDealAmount } from './costs'
 import { debtAnnualService, firstMonthPayment, principalFromAnnual, totalInterest, unitAnnualService } from './loan'
-import { bestLoan, buyerType, generalLoan, ltvRatio, maxAffordable, planFor, policyEligibility, type Profile, type Scenario } from './afford'
+import { recognizedIncome, bestLoan, buyerType, generalLoan, ltvRatio, maxAffordable, planFor, policyEligibility, type Profile, type Scenario } from './afford'
 import { projectFuture, reachYear, savingNeeded } from './future'
 import { jeonseRisk, monthlyCost } from './rent'
 import { presaleSchedule } from './presale'
@@ -42,6 +42,7 @@ const seoul: Scenario = {
   method: 'equal',
   over85: false,
   useFutureIncome: false,
+  spouseFuture: 'half',
   coBorrow: true,
   lender: 'bank',
   moving: 0,
@@ -347,5 +348,18 @@ describe('모은 돈과 재산', () => {
   test('순자산이 정책 대출 기준을 넘으면 디딤돌이 안 된다', () => {
     const rich: Profile = { ...p, assets: { ...p.assets, other: 60000 } }
     expect(policyEligibility(rich, 40000, 'buy').find((e) => e.loan.id === 'didimdol')!.ok).toBe(false)
+  })
+})
+
+describe('배우자 장래소득', () => {
+  const s: Scenario = { ...seoul, useFutureIncome: true }
+  test('배우자는 표 비율의 절반 또는 명의자와 같게 본다', () => {
+    const full = futureIncomeRate(couple.spouse!.age, 30)
+    expect(recognizedIncome(couple, { ...s, spouseFuture: 'half' })[1].rate).toBeCloseTo(full / 2)
+    expect(recognizedIncome(couple, { ...s, spouseFuture: 'full' })[1].rate).toBeCloseTo(full)
+    expect(recognizedIncome(couple, { ...s, spouseFuture: 'half' })[0].rate).toBeCloseTo(futureIncomeRate(couple.me.age, 30))
+  })
+  test('같게 인정하면 DSR 한도가 더 크다', () => {
+    expect(generalLoan(couple, { ...s, spouseFuture: 'full' }, Infinity).dsrAmount).toBeGreaterThan(generalLoan(couple, { ...s, spouseFuture: 'half' }, Infinity).dsrAmount)
   })
 })

@@ -6,7 +6,7 @@ import { DSR_LIMIT, FUTURE_INCOME, futureIncomeRate, stressRate } from '../calc/
 import { MoneyField, Note, Panel, Stat } from './ui'
 import { man, monthly, pct } from '../format'
 import { useLocal, useStore } from '../store'
-import { FutureIncomeNote } from './AskBank'
+import { FutureIncomeNote, SpouseFutureRange } from './AskBank'
 
 function Gauge({ value, limit }: { value: number; limit: number }) {
   const w = Math.min(value / 0.7, 1) * 100
@@ -156,6 +156,7 @@ export default function DsrCheck({ children }: { children?: ReactNode }) {
         </div>
         <p className="text-[12px] text-muted">2024년 고용노동통계 연령대별 임금으로 계산한 비율이에요(부동산계산기.com 기준표).</p>
         <FutureIncomeNote />
+        <SpouseFutureRange />
       </Panel>
 
       <Panel title="DSR에 들어가는 대출, 안 들어가는 대출">

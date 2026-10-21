@@ -14,7 +14,7 @@ import { Ledger, MoneyField, Note, PageHead, Panel, Segmented, Stamp, type Ledge
 import { man } from '../format'
 import { useLocal, useStore } from '../store'
 import { clearQuery, routeQuery } from '../router'
-import AskBank, { FutureIncomeNote } from '../components/AskBank'
+import AskBank, { FutureIncomeNote, SpouseFutureRange } from '../components/AskBank'
 import DsrCheck from '../components/DsrCheck'
 import { recognizedIncome } from '../calc/afford'
 
@@ -155,6 +155,7 @@ export default function Buy() {
                     <LimitBars p={p} s={s} price={plan.price} />
                     <IncomeTable p={p} s={s} price={plan.price} />
                     {futureIncome && <FutureIncomeNote />}
+                    <SpouseFutureRange />
                   </Panel>
                   <Panel title="받을 수 있는 대출 비교">
                     <OptionsTable p={p} s={s} price={plan.price} chosen={plan.loan.id} />

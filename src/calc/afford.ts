@@ -52,6 +52,7 @@ export type Scenario = {
   method: Method
   over85: boolean
   useFutureIncome: boolean
+  spouseFuture: SpouseFuture // 배우자 장래소득을 표 비율의 절반만 볼지, 명의자와 같게 볼지(은행마다 다름)
   coBorrow: boolean // 배우자 소득을 합쳐 심사(배우자 대출도 같이 반영)
   lender: 'bank' | 'second'
   moving: number
@@ -62,10 +63,18 @@ export function householdIncome(p: Profile) {
 }
 
 // DSR 심사에 쓰는 소득. 장래소득은 만 20~34세 근로소득자에게만 붙는다.
+export type SpouseFuture = 'half' | 'full'
+
+export const SPOUSE_FUTURE: { id: SpouseFuture; label: string; share: number }[] = [
+  { id: 'half', label: '절반만', share: 0.5 },
+  { id: 'full', label: '명의자와 같게', share: 1 },
+]
+
 export function recognizedIncome(p: Profile, s: Scenario) {
   const people = [p.me, ...(s.coBorrow && p.spouse ? [p.spouse] : [])]
-  return people.map((x) => {
-    const rate = s.useFutureIncome && x.job === 'employee' ? futureIncomeRate(x.age, s.years) : 0
+  return people.map((x, i) => {
+    const share = i === 0 ? 1 : SPOUSE_FUTURE.find((o) => o.id === s.spouseFuture)!.share
+    const rate = s.useFutureIncome && x.job === 'employee' ? futureIncomeRate(x.age, s.years) * share : 0
     return { person: x, base: x.income, rate, income: x.income * (1 + rate) }
   })
 }
